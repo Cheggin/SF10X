@@ -7,15 +7,6 @@ interface VideoDetailProps {
 }
 
 function VideoDetail({ video, onBack, onWatchVideo }: VideoDetailProps) {
-  const agendaItems = [
-    { id: 1, title: "Call to Order", time: "0:00", status: "completed" },
-    { id: 2, title: "Public Comment", time: "2:15", status: "completed" },
-    { id: 3, title: "Budget Review", time: "8:30", status: "completed" },
-    { id: 4, title: "Housing Development Requirements", time: "14:23", status: "current" },
-    { id: 5, title: "Transportation Infrastructure", time: "42:10", status: "upcoming" },
-    { id: 6, title: "Public Safety Update", time: "58:45", status: "upcoming" }
-  ]
-
   const videoSegments = [
     {
       time: "14:23-16:30",
