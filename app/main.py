@@ -24,7 +24,7 @@ async def initialize_llm_generator():
         user_prompt_path="prompts/rag_chatbot_user_prompt.txt",
         llm_metadata={}, # this is the place to put prompt variables like article
         structured_output_model=NewsRagRequest
-    ).__call__()x
+    ).__call__()
     # Log that initialization is complete
     logger.info(f"LLM Generator initialized during startup \n {llm_generator}")
 
