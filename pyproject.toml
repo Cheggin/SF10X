@@ -21,6 +21,14 @@ dependencies = [
     "streamlit",
     "chonkie[st]",
     "tiktoken",
+    "sqlalchemy~=2.0.0",
+    "asyncpg",
+    "alembic",
+    "pgvector",
+    "greenlet",
+    "requests",
+    "beautifulsoup4",
+    "lxml",
 ]
 
 [build-system]
