@@ -13,11 +13,14 @@ from loguru import logger
 from bs4 import BeautifulSoup
 import re
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 # Add the project root to Python path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
+
+# Import the get_timestamps function from the same directory
+from get_timestamps import scrape_video_page
 
 
 @dataclass
@@ -32,6 +35,25 @@ class MeetingInfo:
     agenda_url: Optional[str] = None
     transcript_url: Optional[str] = None
     audio_url: Optional[str] = None
+    timestamps: Optional[List[Dict]] = None
+
+
+def get_timestamps_for_meeting(meeting: MeetingInfo) -> Optional[List[Dict]]:
+    """Get timestamps for a meeting using its video player URL"""
+    if not meeting.clip_id or not meeting.view_id:
+        return None
+    
+    # Construct the player URL
+    player_url = f"https://sanfrancisco.granicus.com/player/clip/{meeting.clip_id}?view_id={meeting.view_id}&redirect=true"
+    
+    try:
+        logger.info(f"Fetching timestamps for clip_id={meeting.clip_id}")
+        timestamps = scrape_video_page(player_url)
+        logger.info(f"Found {len(timestamps)} timestamps for clip_id={meeting.clip_id}")
+        return timestamps
+    except Exception as e:
+        logger.error(f"Failed to get timestamps for clip_id={meeting.clip_id}: {e}")
+        return None
 
 
 def parse_meetings_from_html(html_content: str) -> List[MeetingInfo]:
@@ -150,6 +172,13 @@ def main():
         # Sort meetings by clip_id (newest first)
         meetings.sort(key=lambda m: int(m.clip_id), reverse=True)
         
+        # Fetch timestamps for each meeting (optionally limit this for testing)
+        logger.info("Fetching timestamps for meetings...")
+        for i, meeting in enumerate(meetings[:5]):  # Fetch timestamps for first 5 meetings
+            meeting.timestamps = get_timestamps_for_meeting(meeting)
+            if meeting.timestamps:
+                logger.info(f"Meeting {meeting.clip_id} has {len(meeting.timestamps)} agenda items")
+        
         for i, meeting in enumerate(meetings[:10], 1):  # Show first 10 meetings
             logger.info(f"Meeting {i}:")
             logger.info(f"  Clip ID: {meeting.clip_id}")
@@ -161,6 +190,8 @@ def main():
                 logger.info(f"  Agenda: {meeting.agenda_url}")
             if meeting.transcript_url:
                 logger.info(f"  Transcript: {meeting.transcript_url}")
+            if meeting.timestamps:
+                logger.info(f"  Timestamps: {len(meeting.timestamps)} agenda items")
             logger.info("---")
         
         if len(meetings) > 10:
@@ -181,7 +212,8 @@ def main():
                     'video_url': m.video_url,
                     'agenda_url': m.agenda_url,
                     'transcript_url': m.transcript_url,
-                    'audio_url': m.audio_url
+                    'audio_url': m.audio_url,
+                    'timestamps': m.timestamps
                 }
                 for m in meetings
             ]
