@@ -33,7 +33,7 @@ class MeetingChunk(Base):
     meeting_id = Column(String, ForeignKey("meetings.meeting_id"), nullable=False)
     chunk_index = Column(Integer, nullable=False)
     chunk_text = Column(Text, nullable=False)
-    embedding = Column(Vector(1536))  # OpenAI ada-002 embedding dimension
+    embedding = Column(Vector(256))  # model2vec embedding dimension
     start_time = Column(Interval)
     end_time = Column(Interval)
     topics = Column(ARRAY(Text))

@@ -19,16 +19,19 @@ dependencies = [
     "pydantic~=2.10.4",
     "uvicorn==0.34.0",
     "streamlit",
-    "chonkie[st]",
+    "chonkie[model2vec]",
     "tiktoken",
     "sqlalchemy~=2.0.0",
     "asyncpg",
+    "psycopg2-binary",
     "alembic",
     "pgvector",
     "greenlet",
     "requests",
     "beautifulsoup4",
     "lxml",
+    "supabase",
+    "aiohttp",
 ]
 
 [build-system]

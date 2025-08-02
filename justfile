@@ -138,15 +138,50 @@ db-clean:
 
 # === Scraping Pipeline ===
 
-# Start scraping SFGovTV (when implemented)
+# Start scraping SFGovTV
 scrape:
     @echo "🕷️  Starting SFGovTV scraping..."
-    python -m app.scraper.main
+    uv run python scripts/scrape_sfgovtv.py
 
-# Process existing transcripts with chunking
-chunk-transcripts:
-    @echo "✂️  Chunking existing transcripts..."
-    python scripts/test_chunking.py
+# Upload meeting metadata to Supabase
+upload-metadata:
+    @echo "📤 Uploading meeting metadata to Supabase..."
+    uv run python scripts/upload_metadata.py
+
+# Scrape transcripts to local disk
+scrape-transcripts:
+    @echo "📝 Scraping transcripts to local disk..."
+    uv run python scripts/scrape_transcripts.py
+
+# Upload transcripts to Supabase object storage
+upload-transcripts:
+    @echo "☁️  Uploading transcripts to Supabase storage..."
+    uv run python scripts/upload_transcripts.py
+
+# Run Supabase database migrations
+supabase-migrate:
+    @echo "🔄 Running Supabase database migrations..."
+    @export $(grep -v '^#' local.env | grep -v '^$' | xargs) && ALEMBIC_DATABASE_URL="$$SUPABASE_DB_URL" uv run alembic upgrade head
+    @echo "✅ Supabase migrations completed!"
+
+# Full Supabase pipeline (migrate -> upload metadata -> scrape transcripts -> upload transcripts)
+supabase-pipeline:
+    @echo "🚀 Running full Supabase pipeline..."
+    just supabase-migrate
+    just upload-metadata
+    just scrape-transcripts
+    just upload-transcripts
+    @echo "🎉 Supabase pipeline completed!"
+
+# Process 2025 transcripts with chunking and embedding
+chunk-and-embed:
+    @echo "✂️  Chunking and embedding 2025 meeting transcripts..."
+    uv run python scripts/chunk_and_embed_sync.py
+
+# Search meeting transcripts
+search QUERY:
+    @echo "🔍 Searching for: {{QUERY}}"
+    uv run python scripts/semantic_search.py --query "{{QUERY}}"
 
 # === Docker Management ===
 
