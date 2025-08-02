@@ -19,6 +19,8 @@ dependencies = [
     "pydantic~=2.10.4",
     "uvicorn==0.34.0",
     "streamlit",
+    "chonkie[st]",
+    "tiktoken",
 ]
 
 [build-system]

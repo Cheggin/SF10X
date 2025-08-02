@@ -169,3 +169,6 @@ $RECYCLE.BIN/
 
 # Ruff
 .ruff_cache/
+
+local.env
+chunks/
