@@ -22,7 +22,7 @@ function VideoPlayerPageRoute() {
   }
 
   const handleBack = () => {
-    navigate(`/video/${videoId}`)
+    navigate('/')
   }
 
   return (

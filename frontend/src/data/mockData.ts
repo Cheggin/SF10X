@@ -33,3 +33,45 @@ export const mockVideoData: VideoSegment[] = [
 export const getVideoById = (id: string): VideoSegment | undefined => {
   return mockVideoData.find(video => video.id === id)
 }
+
+export const getPopularVideos = (): VideoSegment[] => {
+  // Return a selection of popular/featured videos
+  return [
+    {
+      id: 'housing-vote-highlights',
+      title: 'Key Moments: Housing Vote',
+      date: 'Jan 15',
+      duration: '8 min',
+      speakers: ['Supervisor Johnson', 'Supervisor Chen'],
+      summary: 'Heated debate over 18% affordable housing requirement. See the decisive moments that led to the 7-4 vote.',
+      tags: ['housing', 'highlights', 'vote']
+    },
+    {
+      id: 'public-transit-funding',
+      title: 'Transit Funding Approved',
+      date: 'Jan 10', 
+      duration: '12 min',
+      speakers: ['Supervisor Martinez'],
+      summary: '$15M funding approved for Muni improvements. Includes new electric buses and Market Street upgrades.',
+      tags: ['transportation', 'funding', 'muni']
+    },
+    {
+      id: 'small-business-testimony',
+      title: 'Business Owners Speak Out',
+      date: 'Jan 8',
+      duration: '15 min',
+      speakers: ['Public Comments'],
+      summary: 'Emotional testimony from SOMA business owners about construction impacts. Committee promises swift action.',
+      tags: ['business', 'testimony', 'relief']
+    },
+    {
+      id: 'budget-breakdown',
+      title: 'Budget Overview',
+      date: 'Jan 5',
+      duration: '6 min',
+      speakers: ['City Controller'],
+      summary: 'Quick breakdown of this quarter\'s budget priorities: housing, transportation, and public safety.',
+      tags: ['budget', 'overview', 'priorities']
+    }
+  ]
+}
