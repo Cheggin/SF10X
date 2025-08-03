@@ -6,7 +6,7 @@ const baseVideoData: Omit<VideoSegment, 'duration' | 'date'>[] = [
   {
     id: '50121_10',
     title: 'Board of Supervisors Meeting | ID # 50121',
-    speakers: ['Supervisor Johnson'],
+    speakers: ['Connie Chan', 'Matt Dorsey', 'Joel Engardio', 'Jackie Fielder', 'Bilal Mahmood'],
     summary: 'New affordable housing rules for SOMA. Passed 7-4 with 18% requirement.',
     tags: ['housing', 'development', 'affordable'],
     videoUrl: '/videos/50121_10.mp4',
@@ -17,7 +17,7 @@ const baseVideoData: Omit<VideoSegment, 'duration' | 'date'>[] = [
   {
     id: '50188_10',
     title: 'Board of Supervisors Meeting | ID # 50188',
-    speakers: ['Supervisor Martinez'],
+    speakers: ['Rafael Mandelman', 'Myrna Melgar', 'Danny Sauter', 'Stephen Sherrill', 'Shamann Walton'],
     summary: 'Muni funding changes and Market St bike lanes. $15M approved for infrastructure upgrades.',
     tags: ['transportation', 'budget', 'infrastructure'],
     videoUrl: '/videos/50188_10.mp4',
@@ -28,7 +28,7 @@ const baseVideoData: Omit<VideoSegment, 'duration' | 'date'>[] = [
   {
     id: '50291_10',
     title: 'Board of Supervisors Meeting | ID # 50291',
-    speakers: ['Public Comments'],
+    speakers: ['Chyanne Chen', 'Connie Chan', 'Matt Dorsey', 'Joel Engardio'],
     summary: 'Citizens request construction impact relief. Committee formed to review proposals.',
     tags: ['business', 'relief', 'public-comment'],
     videoUrl: '/videos/50291_10.mp4',
@@ -39,7 +39,7 @@ const baseVideoData: Omit<VideoSegment, 'duration' | 'date'>[] = [
   {
     id: '50412_10',
     title: 'Board of Supervisors Meeting | ID # 50412',
-    speakers: ['Chief of Police'],
+    speakers: ['Jackie Fielder', 'Bilal Mahmood', 'Rafael Mandelman', 'Myrna Melgar'],
     summary: 'Discussion on police department budget allocation and community safety initiatives.',
     tags: ['public-safety', 'budget', 'police'],
     videoUrl: '/videos/50412_10.mp4',
@@ -50,7 +50,7 @@ const baseVideoData: Omit<VideoSegment, 'duration' | 'date'>[] = [
   {
     id: '50523_10',
     title: 'Board of Supervisors Meeting | ID # 50523',
-    speakers: ['Environmental Committee'],
+    speakers: ['Danny Sauter', 'Stephen Sherrill', 'Shamann Walton', 'Chyanne Chen'],
     summary: 'New environmental policies and climate action initiatives for the city.',
     tags: ['environment', 'climate', 'policy'],
     videoUrl: '/videos/50523_10.mp4',
@@ -90,8 +90,8 @@ export const loadVideoDataWithMetadata = async (): Promise<VideoSegment[]> => {
     // Fallback to base data with mock values
     mockVideoData = baseVideoData.map(baseVideo => ({
       ...baseVideo,
-      duration: '15:00',
-      date: 'Jan 1'
+      duration: 'Loading...',
+      date: 'Loading...'
     }))
     return mockVideoData
   }
@@ -100,8 +100,8 @@ export const loadVideoDataWithMetadata = async (): Promise<VideoSegment[]> => {
 // Initialize with mock data for immediate use
 mockVideoData = baseVideoData.map(baseVideo => ({
   ...baseVideo,
-  duration: '15:00',
-  date: 'Jan 1'
+  duration: 'Loading...',
+  date: 'Loading...'
 }))
 
 export { mockVideoData }
@@ -111,6 +111,6 @@ export const getVideoById = (id: string): VideoSegment | undefined => {
 }
 
 export const getPopularVideos = (): VideoSegment[] => {
-  // Return the first 4 videos as featured/popular
-  return mockVideoData.slice(0, 4)
+  // Return the first 3 videos as featured/popular
+  return mockVideoData.slice(0, 3)
 }

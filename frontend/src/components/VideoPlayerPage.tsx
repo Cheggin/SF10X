@@ -4,7 +4,7 @@ import type { VideoSegment } from '../types'
 import VideoPlayer from './VideoPlayer'
 import { ChevronDown } from 'lucide-react'
 import { fetchSummary, fetchTimestamps, type SummaryResponse, type TimestampItem } from '../services/api'
-import { mockVideoData } from '../data/mockData'
+import { loadVideoDataWithMetadata } from '../data/mockData'
 
 interface VideoPlayerPageProps {
   video: VideoSegment
@@ -56,30 +56,39 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
 
   // Load recommended videos based on current video's tags
   useEffect(() => {
-    const loadRecommendedVideos = () => {
+    const loadRecommendedVideos = async () => {
       setRecommendedLoading(true)
       
-      // Filter videos that share tags with current video
-      const related = mockVideoData
-        .filter(v => v.id !== video.id) // Exclude current video
-        .filter(v => 
-          // Find videos that share at least one tag
-          v.tags.some(tag => video.tags.includes(tag))
-        )
-        .slice(0, 3) // Limit to 3 recommendations
-      
-      // If we don't have enough related videos, add others
-      if (related.length < 3) {
-        const remaining = mockVideoData
-          .filter(v => v.id !== video.id)
-          .filter(v => !related.includes(v))
-          .slice(0, 3 - related.length)
+      try {
+        // Load the actual video data with metadata
+        const videoData = await loadVideoDataWithMetadata()
         
-        related.push(...remaining)
+        // Filter videos that share tags with current video
+        const related = videoData
+          .filter(v => v.id !== video.id) // Exclude current video
+          .filter(v => 
+            // Find videos that share at least one tag
+            v.tags.some(tag => video.tags.includes(tag))
+          )
+          .slice(0, 3) // Limit to 3 recommendations
+        
+        // If we don't have enough related videos, add others
+        if (related.length < 3) {
+          const remaining = videoData
+            .filter(v => v.id !== video.id)
+            .filter(v => !related.includes(v))
+            .slice(0, 3 - related.length)
+          
+          related.push(...remaining)
+        }
+        
+        setRecommendedVideos(related)
+      } catch (error) {
+        console.error('Error loading recommended videos:', error)
+        setRecommendedVideos([])
+      } finally {
+        setRecommendedLoading(false)
       }
-      
-      setRecommendedVideos(related)
-      setRecommendedLoading(false)
     }
 
     loadRecommendedVideos()
