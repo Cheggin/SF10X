@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path='../local.env')
 
 class SummaryUploader:
-    def __init__(self, json_file_path: str = "transcript_summaries.json"):
+    def __init__(self, json_file_path: str = "transcript_summaries2.json"):
         self.json_file_path = json_file_path
         self.db_url = os.getenv('SUPABASE_DB_URL')
         
@@ -40,6 +40,7 @@ class SummaryUploader:
                 summary_response = record.get('summary_response', {})
                 main_summary = summary_response.get('main_summary')
                 agenda_summaries = summary_response.get('agenda_summaries', [])
+                tags = summary_response.get('tags', [])
                 
                 if not meeting_id or not main_summary:
                     print(f"Skipping incomplete record: {meeting_id}")
@@ -51,7 +52,8 @@ class SummaryUploader:
                 extracted_record = {
                     'meeting_id': meeting_id,
                     'main_summary': main_summary,
-                    'agenda_summaries': agenda_summaries_json
+                    'agenda_summaries': agenda_summaries_json,
+                    'tags': tags
                 }
                 
                 extracted_records.append(extracted_record)
@@ -77,12 +79,9 @@ class SummaryUploader:
             try:
                 # Insert or update records using ON CONFLICT
                 upsert_sql = """
-                INSERT INTO meeting_summary (meeting_id, main_summary, agenda_summary)
-                VALUES ($1, $2, $3)
-                ON CONFLICT (meeting_id) 
-                DO UPDATE SET 
-                    main_summary = EXCLUDED.main_summary,
-                    agenda_summary = EXCLUDED.agenda_summary;
+                INSERT INTO meeting_summary (meeting_id, main_summary, agenda_summary, tags)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT DO NOTHING;
                 """
                 
                 uploaded_count = 0
@@ -92,7 +91,8 @@ class SummaryUploader:
                             upsert_sql,
                             record['meeting_id'],
                             record['main_summary'],
-                            record['agenda_summaries']
+                            record['agenda_summaries'],
+                            record['tags']
                         )
                         uploaded_count += 1
                         print(f"Uploaded: {record['meeting_id']}")

@@ -20,3 +20,4 @@ class SummaryResponse(BaseModel):
 class SummarizationResponse(BaseModel):
     main_summary: str = Field(..., description="Full main summary text")
     agenda_summaries: List[AgendaSummary] = Field(..., description="List of agenda summaries")
+    tags: List[str] = Field(..., description="List of NER output")

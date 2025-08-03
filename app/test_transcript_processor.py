@@ -16,7 +16,7 @@ load_dotenv(dotenv_path='../local.env')
 class TranscriptProcessor:
     def __init__(self):
         self.transcripts_folder = "../transcripts"
-        self.output_file = "transcript_summaries_2.json"
+        self.output_file = "transcript_summaries2.json"
         self.db_url = os.getenv('SUPABASE_DB_URL')
         
     def get_transcript_files(self) -> List[str]:
@@ -122,7 +122,7 @@ class TranscriptProcessor:
         meeting_id = self.extract_meeting_id(filename)
         print(f"  Meeting ID: {meeting_id}")
 
-        if meeting_id =="10_50251":
+        if meeting_id =="10_50523":
             # Step 3: Query database for agenda_timestamps
             agenda_timestamps = await self.query_agenda_timestamps(meeting_id)
             print(f"  Found {len(agenda_timestamps)} agenda timestamps")
