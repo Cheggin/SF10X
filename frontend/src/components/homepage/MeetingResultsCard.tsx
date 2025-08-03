@@ -79,7 +79,18 @@ const MeetingResultsCard = memo(({
             onClick={() => onResultClick(result.id)}
           >
             <div className="result-thumbnail">
-              <div className="thumbnail-placeholder">
+              <img 
+                src={`/thumbnails/${result.id}.jpg`}
+                alt={`Thumbnail for ${result.title}`}
+                className="thumbnail-image"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const placeholder = target.nextElementSibling;
+                  if (placeholder) placeholder.setAttribute('style', 'display: flex');
+                }}
+              />
+              <div className="thumbnail-placeholder" style={{ display: 'none' }}>
                 <svg className="play-icon w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polygon points="5,3 19,12 5,21" />
                 </svg>

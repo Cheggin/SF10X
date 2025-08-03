@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { VideoSegment } from '../types'
 import VideoPlayer from './VideoPlayer'
+import ChatBot from './ChatBot'
 import { ChevronDown } from 'lucide-react'
 import { fetchSummary, fetchTimestamps, type SummaryResponse, type TimestampItem } from '../services/api'
 
@@ -17,20 +18,16 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
   const [timestampData, setTimestampData] = useState<TimestampItem[]>([])
   const [summaryLoading, setSummaryLoading] = useState<boolean>(false)
   const [timestampLoading, setTimestampLoading] = useState<boolean>(false)
-  const [summaryError, setSummaryError] = useState<string | null>(null)
   const [timestampError, setTimestampError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'agenda' | 'summary'>('agenda')
 
   useEffect(() => {
     const loadData = async () => {
       // Load summary data
       setSummaryLoading(true)
-      setSummaryError(null)
       try {
-        const summaryResponse = await fetchSummary(video.id, video.id)
+        const summaryResponse = await fetchSummary(video.clipId || video.id, video.viewId || '10')
         setSummaryData(summaryResponse)
       } catch (error) {
-        setSummaryError('Failed to load summary data')
         console.error('Error loading summary:', error)
       } finally {
         setSummaryLoading(false)
@@ -40,7 +37,7 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
       setTimestampLoading(true)
       setTimestampError(null)
       try {
-        const timestampResponse = await fetchTimestamps('50523', '10') // Using your test IDs for now
+        const timestampResponse = await fetchTimestamps(video.clipId || video.id, video.viewId || '10')
         setTimestampData(timestampResponse)
       } catch (error) {
         setTimestampError('Failed to load timestamp data')
@@ -51,7 +48,7 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
     }
 
     loadData()
-  }, [video.id])
+  }, [video.id, video.clipId, video.viewId])
 
   // Create agenda items from timestamp data with fallback to hardcoded data
   const agendaItems = timestampData.length > 0 
@@ -219,7 +216,7 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
         <div className="video-section">
           <div className="video-container-modern">
             <VideoPlayer 
-              src="/video.mp4"
+              src={video.videoUrl || `/videos/${video.id}.mp4`}
               onTimeUpdate={(currentTime, duration) => {
                 setCurrentTime(currentTime)
                 
@@ -308,26 +305,10 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
           </div>
         </div>
 
-        {/* Right Sidebar with Tabs */}
+        {/* Right Sidebar */}
         <div className="sidebar-container">
-          {/* Tab Navigation */}
-          <div className="tab-navigation">
-            <button 
-              className={`tab-btn ${activeTab === 'agenda' ? 'active' : ''}`}
-              onClick={() => setActiveTab('agenda')}
-            >
-              Agenda
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'summary' ? 'active' : ''}`}
-              onClick={() => setActiveTab('summary')}
-            >
-              Summary
-            </button>
-          </div>
-
-          {/* Agenda Tab */}
-          <div className="agenda-sidebar-modern" style={{ display: activeTab === 'agenda' ? 'block' : 'none' }}>
+          {/* Agenda */}
+          <div className="agenda-sidebar-modern">
             <div className="agenda-header-modern">
               <h2>Meeting Agenda</h2>
               <div className="agenda-progress-indicator">
@@ -403,43 +384,10 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
             </div>
           </div>
 
-          {/* Summary Tab */}
-          <div className="summary-sidebar-modern" style={{ display: activeTab === 'summary' ? 'block' : 'none' }}>
-            <div className="summary-header-modern">
-              <h2>Meeting Summary</h2>
-            </div>
-            
-            <div className="summary-content">
-              {summaryLoading && (
-                <div className="summary-loading">
-                  <div className="loading-spinner"></div>
-                  <p>Loading summary...</p>
-                </div>
-              )}
-              
-              {summaryError && (
-                <div className="summary-error">
-                  <p>{summaryError}</p>
-                </div>
-              )}
-              
-              {summaryData && (
-                <div className="agenda-summaries-section">
-                  <h3>Agenda Item Summaries</h3>
-                  <div className="agenda-summaries-list">
-                    {summaryData.agenda_summary.map((item, index) => (
-                      <div key={index} className="agenda-summary-item">
-                        <h4>{item.agenda_name}</h4>
-                        <p>{item.agenda_summary}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
+      
+      <ChatBot sessionId={video.id} />
     </div>
   )
 }

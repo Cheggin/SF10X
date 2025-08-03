@@ -7,4 +7,7 @@ export interface VideoSegment {
   summary: string
   tags: string[]
   thumbnailUrl?: string
+  videoUrl?: string
+  clipId?: string
+  viewId?: string
 }
