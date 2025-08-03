@@ -1,6 +1,18 @@
 from pydantic import BaseModel, Field, ConfigDict
+from typing import List
 
 class NewsRagRequest(BaseModel):
-    session_id: str = Field(default="test-123", description="User Session ID")
-    user_query: str = Field(..., description="User Query String")
-    model_config = ConfigDict(from_attributes=True)
+    user_query: str
+    session_id: str
+
+class SummaryRequest(BaseModel):
+    clip_id: str = Field(..., description="Clip identifier")
+    view_id: str = Field(..., description="View identifier")
+
+class AgendaSummary(BaseModel):
+    agenda_name: str = Field(..., description="Name of the agenda item")
+    agenda_summary: str = Field(..., description="Summary of the agenda item")
+
+class SummaryResponse(BaseModel):
+    meeting_summary: str = Field(..., description="Full meeting summary text")
+    agenda_summary: List[AgendaSummary] = Field(..., description="List of agenda summaries")
