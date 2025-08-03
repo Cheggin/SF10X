@@ -1,0 +1,320 @@
+import { useState } from 'react'
+import type { VideoSegment } from '../types'
+import VideoPlayer from './VideoPlayer'
+import { ChevronDown } from 'lucide-react'
+
+interface VideoPlayerPageProps {
+  video: VideoSegment
+  onBack: () => void
+}
+
+function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
+  const [currentSegment, setCurrentSegment] = useState<number | null>(null)
+  const [currentTime, setCurrentTime] = useState<number>(0)
+  const [expandedAgendaItems, setExpandedAgendaItems] = useState<Set<number>>(new Set())
+
+  const agendaItems = [
+    { 
+      id: 1, 
+      title: "Call to Order", 
+      time: "0:00", 
+      startSeconds: 0,
+      summary: "Meeting is officially called to order. Roll call of board members and confirmation of quorum. Review of meeting protocols and agenda overview."
+    },
+    { 
+      id: 2, 
+      title: "Public Comment", 
+      time: "2:15", 
+      startSeconds: 135,
+      summary: "Open forum for public input on agenda items. Citizens present concerns about housing development timeline and community impact. Three speakers address affordability concerns."
+    },
+    { 
+      id: 3, 
+      title: "Budget Review", 
+      time: "8:30", 
+      startSeconds: 510,
+      summary: "Quarterly financial report and budget allocation review. Discussion of funding sources for housing initiatives and projected costs for infrastructure improvements."
+    },
+    { 
+      id: 4, 
+      title: "Housing Development Requirements", 
+      time: "14:23", 
+      startSeconds: 863,
+      summary: "Main agenda item covering new affordable housing requirements. Includes developer testimony, community advocate presentations, and board discussion leading to final vote on 18% affordable housing requirement."
+    },
+    { 
+      id: 5, 
+      title: "Transportation Infrastructure", 
+      time: "42:10", 
+      startSeconds: 2530,
+      summary: "Discussion of transportation improvements needed to support new housing developments. Review of traffic impact studies and proposed transit solutions."
+    },
+    { 
+      id: 6, 
+      title: "Public Safety Update", 
+      time: "58:45", 
+      startSeconds: 3525,
+      summary: "Police department briefing on community safety measures related to increased residential density. Discussion of emergency services capacity and response times."
+    }
+  ]
+
+  const getCurrentAgendaStatus = (itemIndex: number): string => {
+    const currentItem = agendaItems[itemIndex]
+    const nextItem = agendaItems[itemIndex + 1]
+    
+    if (currentTime < currentItem.startSeconds) {
+      return 'upcoming'
+    } else if (nextItem && currentTime >= nextItem.startSeconds) {
+      return 'completed'
+    } else {
+      return 'current'
+    }
+  }
+
+  const getAgendaProgress = (itemIndex: number): number => {
+    const currentItem = agendaItems[itemIndex]
+    const nextItem = agendaItems[itemIndex + 1]
+    
+    if (getCurrentAgendaStatus(itemIndex) !== 'current') {
+      return 0
+    }
+    
+    if (!nextItem) {
+      return 0 // Last item, no progress calculation
+    }
+    
+    const itemDuration = nextItem.startSeconds - currentItem.startSeconds
+    const elapsed = currentTime - currentItem.startSeconds
+    return Math.min(100, Math.max(0, (elapsed / itemDuration) * 100))
+  }
+
+  const toggleAgendaItem = (itemId: number) => {
+    const newExpanded = new Set(expandedAgendaItems)
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId)
+    } else {
+      newExpanded.add(itemId)
+    }
+    setExpandedAgendaItems(newExpanded)
+  }
+
+  const videoSegments = [
+    {
+      time: "14:23-16:30",
+      title: "Opening Statements",
+      summary: "Supervisor Johnson introduces the housing requirements proposal, outlining the need for increased affordable housing in SOMA."
+    },
+    {
+      time: "16:30-25:45", 
+      title: "Developer Testimony",
+      summary: "Representatives from local development companies express concerns about cost increases and construction delays."
+    },
+    {
+      time: "25:45-35:20",
+      title: "Community Advocates",
+      summary: "Housing advocates and community members speak about displacement concerns and the need for affordable options."
+    },
+    {
+      time: "35:20-42:10",
+      title: "Board Discussion & Vote",
+      summary: "Board members debate the proposal, discuss amendments, and cast final votes. Motion passes 7-4 with 18% requirement."
+    }
+  ]
+
+  const parseTimeToSeconds = (timeStr: string): number => {
+    const parts = timeStr.split(':')
+    if (parts.length === 2) {
+      return parseInt(parts[0]) * 60 + parseInt(parts[1])
+    } else if (parts.length === 3) {
+      return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2])
+    }
+    return 0
+  }
+
+  // const handleSegmentClick = (timeRange: string, index: number) => {
+  //   const startTime = timeRange.split('-')[0]
+  //   const seconds = parseTimeToSeconds(startTime)
+  //   setCurrentSegment(index)
+  //   // The VideoPlayer component will handle the actual seeking via onSeek callback
+  //   return seconds
+  // }
+
+  const handleAgendaClick = (timeStr: string) => {
+    const seconds = parseTimeToSeconds(timeStr)
+    return seconds
+  }
+
+  return (
+    <div className="video-player-page-modern">
+      {/* Modern Header */}
+      <div className="modern-header">
+        <div className="header-content">
+          <button className="modern-back-btn" onClick={onBack}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+            Back to Search
+          </button>
+          <div className="header-details">
+            <h1 className="modern-title">{video.title}</h1>
+            <div className="meeting-badge">
+              <span className="date-badge">{video.date}, 2024</span>
+              <span className="type-badge">Board Meeting</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="modern-content-grid">
+        {/* Video Section */}
+        <div className="video-section">
+          <div className="video-container-modern">
+            <VideoPlayer 
+              src="/video.mp4"
+              onTimeUpdate={(currentTime, duration) => {
+                setCurrentTime(currentTime)
+                
+                // Update current segment based on time
+                const activeSegment = videoSegments.findIndex((segment, index) => {
+                  const [startTime] = segment.time.split('-')
+                  const startSeconds = parseTimeToSeconds(startTime)
+                  const nextSegment = videoSegments[index + 1]
+                  const endSeconds = nextSegment ? parseTimeToSeconds(nextSegment.time.split('-')[0]) : duration
+                  
+                  return currentTime >= startSeconds && currentTime < endSeconds
+                })
+                
+                if (activeSegment !== -1 && activeSegment !== currentSegment) {
+                  setCurrentSegment(activeSegment)
+                }
+              }}
+              onSeek={(time) => {
+                setCurrentTime(time)
+              }}
+            />
+          </div>
+
+          {/* Video Info Card */}
+          <div className="video-info-card">
+            <div className="speakers-section">
+              <h3>Speakers</h3>
+              <p>{video.speakers.join(', ')} + 3 others</p>
+            </div>
+            <div className="actions-section">
+              <button className="modern-action-btn primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17,21 17,13 7,13 7,21"/>
+                  <polyline points="7,3 7,8 15,8"/>
+                </svg>
+                Save
+              </button>
+              <button className="modern-action-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <polyline points="16,6 12,2 8,6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+                Share
+              </button>
+              <button className="modern-action-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14,2 14,8 20,8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10,9 9,9 8,9"/>
+                </svg>
+                Transcript
+              </button>
+              <button className="modern-action-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 3h18v18H3zM12 8v8m-4-4h8"/>
+                </svg>
+                Notes
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Agenda Sidebar */}
+        <div className="agenda-sidebar-modern">
+          <div className="agenda-header-modern">
+            <h2>Meeting Agenda</h2>
+            <div className="agenda-progress-indicator">
+              <span>{agendaItems.filter((_, i) => getCurrentAgendaStatus(i) === 'completed').length} / {agendaItems.length} completed</span>
+            </div>
+          </div>
+          
+          <div className="agenda-timeline">
+            {agendaItems.map((item, index) => {
+              const status = getCurrentAgendaStatus(index)
+              const progress = getAgendaProgress(index)
+              const isExpanded = expandedAgendaItems.has(item.id)
+              return (
+                <div 
+                  key={item.id} 
+                  className={`timeline-item ${status}`}
+                >
+                  <div className="timeline-marker">
+                    <div className={`marker-dot ${status}`}>
+                      {status === 'completed' && <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>}
+                      {status === 'current' && <div className="pulse-dot"></div>}
+                    </div>
+                    {index < agendaItems.length - 1 && <div className="timeline-line"></div>}
+                  </div>
+                  
+                  <div className="timeline-content">
+                    <div 
+                      className="timeline-header"
+                      onClick={() => {
+                        const seconds = handleAgendaClick(item.time)
+                        const videoElement = document.querySelector('video') as HTMLVideoElement
+                        if (videoElement) {
+                          videoElement.currentTime = seconds
+                        }
+                      }}
+                    >
+                      <div className="timeline-time">{item.time}</div>
+                      <h4 className="timeline-title">{item.title}</h4>
+                      <button 
+                        className="expand-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleAgendaItem(item.id)
+                        }}
+                      >
+                        <ChevronDown 
+                          size={16} 
+                          className={`chevron ${isExpanded ? 'expanded' : ''}`}
+                        />
+                      </button>
+                    </div>
+                    
+                    {status === 'current' && progress > 0 && (
+                      <div className="progress-bar-modern">
+                        <div 
+                          className="progress-fill-modern"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    )}
+                    
+                    {isExpanded && (
+                      <div className="timeline-summary">
+                        <p>{item.summary}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default VideoPlayerPage

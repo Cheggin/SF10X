@@ -1,41 +1,91 @@
-# SFGovTV Insights - Project Context
+# CLAUDE.md
 
-## Project Overview
-This is an AI-powered platform that transforms long SFGovTV meeting videos (3-4 hours) into searchable, digestible content to improve civic engagement and transparency.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Core Features
+## Project Structure
 
-### 1. AI-Powered Search & Discovery (MVP)
-- Semantic search across video content
-- Search by person name, keywords, or phrases
-- Returns relevant video clips with summaries and speaker attribution
+This is a full-stack AI application with a Python FastAPI backend and React TypeScript frontend:
 
-### 2. Dynamic Summaries & Topic Highlighting
-- AI-generated video summaries
-- Clickable topic list for navigation
-- "Highlights" reel of key moments
+- **Backend (`/app`)**: FastAPI server providing LLM-powered news RAG (Retrieval-Augmented Generation) API
+- **Frontend (`/frontend`)**: React + TypeScript + Vite application (currently default template)
 
-### 3. Person and Attribution Index
-- Real-time speaker identification
-- Speaker titles and roles
-- Clickable profiles showing contributions
+## Development Commands
 
-## Technical Stack
-- **Transcription**: AssemblyAI, Descript, or OpenAI Whisper
-- **Vector Database**: For semantic search via embeddings
-- **LLMs**: OpenAI or Hugging Face for summarization
-- **NLP**: Named Entity Recognition for speaker identification
-- **Frontend**: Streamlit (based on project dependencies)
-- **API**: FastAPI with Uvicorn
+### Backend (Python/FastAPI)
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-## Development Guidelines
-- Start with data ingestion and transcription as foundation
-- Focus on user-friendly, visual-first design
-- Prioritize search functionality over video library browsing
-- Keep interface clean and avoid information overload
+# Run development server
+cd app && python main.py
+# Server runs on http://0.0.0.0:8000 with hot reload and 4 workers
 
-## Current Project State
-- Basic FastAPI application structure in place
-- LangChain integrations for various LLMs (OpenAI, Anthropic, Google)
-- Vector store support via FAISS
-- Streamlit for frontend interface
+# Run server with uvicorn directly
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Frontend (React/TypeScript)
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Lint code
+npm run lint
+
+# Preview production build
+npm run preview
+```
+
+## Architecture Overview
+
+### Backend Architecture
+
+The backend is built around a centralized `LLMGenerator` class that supports multiple LLM providers:
+
+- **`LLMGenerator`** (`llm_generator.py`): Core orchestrator that manages multiple LLM models concurrently
+  - Supports OpenAI GPT-4o, Google Gemini 2.0, and Perplexity models (Sonar variants)
+  - Handles both structured output (Pydantic models) and raw text responses
+  - Uses ThreadPoolExecutor for parallel model execution
+  - Supports LangChain tools and agent-based workflows
+
+- **Model Selection** (`select_model.py`): Factory pattern for creating LLM instances
+  - Centralized configuration for different model providers
+  - Environment variable-based API key management
+
+- **API Structure** (`main.py`): FastAPI application with single endpoint
+  - `/generate` POST endpoint accepting `NewsRagRequest`
+  - Global LLMGenerator instance initialized at startup
+  - Session-based conversation support
+
+- **Request Schema** (`schemas/schema.py`): Pydantic models for API contracts
+  - `NewsRagRequest`: Contains `session_id` and `user_query`
+
+### Key Features
+
+- **Multi-model Support**: Concurrent execution across multiple LLM providers
+- **RAG System**: Template-based prompting system with context injection
+- **Session Management**: Support for multi-turn conversations via session IDs
+- **Structured Output**: Optional Pydantic model validation for responses
+- **Tool Integration**: LangChain tool calling and agent execution support
+
+### Environment Configuration
+
+The application requires API keys in environment variables:
+- `OPENAI_API_KEY` for GPT-4o
+- `GOOGLE_API_KEY` for Gemini models  
+- `PERPLEXITY_API_KEY` for Sonar models
+- `ANTHROPIC_API_KEY` for Claude models (configured but not in constants)
+
+### Prompt System
+
+- System and user prompts are stored as text files in `/app/prompts/`
+- `rag_chatbot_system_prompt.txt`: Base system instructions for RAG functionality
+- `rag_chatbot_user_prompt.txt`: User prompt template with context placeholder
