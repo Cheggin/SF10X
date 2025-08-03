@@ -23,7 +23,7 @@ const AIChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hello! I\'m your AI assistant for San Francisco city council meetings. Ask me anything about past meetings, decisions, or discussions.',
+      text: 'Hello! I\'m your AI assistant for San Francisco board of supervisors meetings. Ask me anything about past meetings, decisions, or discussions.',
       sender: 'ai',
       timestamp: new Date()
     }
