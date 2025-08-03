@@ -18,7 +18,17 @@ function ResultsContainer({ searchQuery, onVideoSelect }: ResultsContainerProps)
   return (
     <main className="results-container">
       <div className="results-header">
-        <h2>RESULTS</h2>
+        <h2>Meeting Results</h2>
+        {searchQuery && (
+          <p className="results-subtitle">
+            {filteredVideos.length} meeting{filteredVideos.length !== 1 ? 's' : ''} found for "{searchQuery}"
+          </p>
+        )}
+        {!searchQuery && (
+          <p className="results-subtitle">
+            Recent San Francisco Board of Supervisors meetings
+          </p>
+        )}
       </div>
       
       <div className="results-list">

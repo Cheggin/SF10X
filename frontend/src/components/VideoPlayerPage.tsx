@@ -145,21 +145,31 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
   }
 
   return (
-    <div className="video-player-page">
-      <header className="player-header">
-        <button className="back-button" onClick={onBack}>
-          ← Back to Results
-        </button>
-        <h1>{video.title}</h1>
-        <div className="meeting-info">
-          📅 {video.date}, 2024 • Regular Board Meeting
+    <div className="video-player-page-modern">
+      {/* Modern Header */}
+      <div className="modern-header">
+        <div className="header-content">
+          <button className="modern-back-btn" onClick={onBack}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+            Back to Search
+          </button>
+          <div className="header-details">
+            <h1 className="modern-title">{video.title}</h1>
+            <div className="meeting-badge">
+              <span className="date-badge">{video.date}, 2024</span>
+              <span className="type-badge">Board Meeting</span>
+            </div>
+          </div>
         </div>
-      </header>
+      </div>
 
-      <div className="player-content">
-        {/* Left Column - Video Player */}
-        <div className="video-main">
-          <div className="video-player-full">
+      {/* Main Content Grid */}
+      <div className="modern-content-grid">
+        {/* Video Section */}
+        <div className="video-section">
+          <div className="video-container-modern">
             <VideoPlayer 
               src="/video.mp4"
               onTimeUpdate={(currentTime, duration) => {
@@ -185,84 +195,122 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
             />
           </div>
 
-          <div className="video-metadata">
-            <div className="speakers-info">
-              <strong>Speakers:</strong> {video.speakers.join(', ')} + 3 others
+          {/* Video Info Card */}
+          <div className="video-info-card">
+            <div className="speakers-section">
+              <h3>Speakers</h3>
+              <p>{video.speakers.join(', ')} + 3 others</p>
             </div>
-            <div className="video-actions">
-              <button className="action-btn">💾 Save</button>
-              <button className="action-btn">📤 Share</button>
-              <button className="action-btn">📄 Transcript</button>
-              <button className="action-btn">📝 Notes</button>
+            <div className="actions-section">
+              <button className="modern-action-btn primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17,21 17,13 7,13 7,21"/>
+                  <polyline points="7,3 7,8 15,8"/>
+                </svg>
+                Save
+              </button>
+              <button className="modern-action-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <polyline points="16,6 12,2 8,6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+                Share
+              </button>
+              <button className="modern-action-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14,2 14,8 20,8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10,9 9,9 8,9"/>
+                </svg>
+                Transcript
+              </button>
+              <button className="modern-action-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 3h18v18H3zM12 8v8m-4-4h8"/>
+                </svg>
+                Notes
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Right Column - Agenda & Segments */}
-        <div className="player-sidebar">
-          <section className="agenda-section-player">
-            <h2>MEETING AGENDA</h2>
-            <div className="agenda-list-player">
-              {agendaItems.map((item, index) => {
-                const status = getCurrentAgendaStatus(index)
-                const progress = getAgendaProgress(index)
-                const isExpanded = expandedAgendaItems.has(item.id)
-                return (
-                  <div 
-                    key={item.id} 
-                    className={`agenda-item-player ${status}`}
-                  >
+        {/* Agenda Sidebar */}
+        <div className="agenda-sidebar-modern">
+          <div className="agenda-header-modern">
+            <h2>Meeting Agenda</h2>
+            <div className="agenda-progress-indicator">
+              <span>{agendaItems.filter((_, i) => getCurrentAgendaStatus(i) === 'completed').length} / {agendaItems.length} completed</span>
+            </div>
+          </div>
+          
+          <div className="agenda-timeline">
+            {agendaItems.map((item, index) => {
+              const status = getCurrentAgendaStatus(index)
+              const progress = getAgendaProgress(index)
+              const isExpanded = expandedAgendaItems.has(item.id)
+              return (
+                <div 
+                  key={item.id} 
+                  className={`timeline-item ${status}`}
+                >
+                  <div className="timeline-marker">
+                    <div className={`marker-dot ${status}`}>
+                      {status === 'completed' && <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>}
+                      {status === 'current' && <div className="pulse-dot"></div>}
+                    </div>
+                    {index < agendaItems.length - 1 && <div className="timeline-line"></div>}
+                  </div>
+                  
+                  <div className="timeline-content">
                     <div 
-                      className="agenda-item-content"
+                      className="timeline-header"
                       onClick={() => {
                         const seconds = handleAgendaClick(item.time)
-                        // Trigger seek on video player
                         const videoElement = document.querySelector('video') as HTMLVideoElement
                         if (videoElement) {
                           videoElement.currentTime = seconds
                         }
                       }}
                     >
-                      <span className="agenda-time-player">{item.time}</span>
-                      <span className="agenda-title-player">{item.title}</span>
-                      <div className="agenda-controls">
-                        <span className={`agenda-status-player ${status}`}>
-                          {status === 'completed' && '✓'}
-                          {status === 'current' && '▶'}
-                          {status === 'upcoming' && '○'}
-                        </span>
-                        <button 
-                          className="agenda-dropdown-btn"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleAgendaItem(item.id)
-                          }}
-                        >
-                          <ChevronDown 
-                            size={16} 
-                            className={`chevron ${isExpanded ? 'expanded' : ''}`}
-                          />
-                        </button>
-                      </div>
+                      <div className="timeline-time">{item.time}</div>
+                      <h4 className="timeline-title">{item.title}</h4>
+                      <button 
+                        className="expand-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleAgendaItem(item.id)
+                        }}
+                      >
+                        <ChevronDown 
+                          size={16} 
+                          className={`chevron ${isExpanded ? 'expanded' : ''}`}
+                        />
+                      </button>
                     </div>
+                    
                     {status === 'current' && progress > 0 && (
-                      <div className="agenda-progress-bar">
+                      <div className="progress-bar-modern">
                         <div 
-                          className="agenda-progress-fill"
+                          className="progress-fill-modern"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
                     )}
+                    
                     {isExpanded && (
-                      <div className="agenda-summary">
+                      <div className="timeline-summary">
                         <p>{item.summary}</p>
                       </div>
                     )}
                   </div>
-                )
-              })}
-            </div>
-          </section>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>

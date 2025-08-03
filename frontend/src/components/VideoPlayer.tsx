@@ -9,7 +9,7 @@ import {
   VolumeX, 
   Settings, 
   Maximize, 
-  Minimize 
+  Minimize
 } from 'lucide-react'
 
 interface VideoPlayerProps {
@@ -51,10 +51,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, onSeek }) 
       
       // Check if the video has audio tracks
       if ('webkitAudioDecodedByteCount' in video) {
-        console.log('Audio decoded bytes:', (video as any).webkitAudioDecodedByteCount)
+        console.log('Audio decoded bytes:', (video as HTMLVideoElement & { webkitAudioDecodedByteCount: number }).webkitAudioDecodedByteCount)
       }
       if ('webkitVideoDecodedByteCount' in video) {
-        console.log('Video decoded bytes:', (video as any).webkitVideoDecodedByteCount)
+        console.log('Video decoded bytes:', (video as HTMLVideoElement & { webkitVideoDecodedByteCount: number }).webkitVideoDecodedByteCount)
       }
       
       // Check codec info if available
@@ -63,7 +63,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, onSeek }) 
         console.log('Can play MP4:', canPlayMP4)
         const canPlayMP4Codecs = video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"')
         console.log('Can play MP4 with codecs:', canPlayMP4Codecs)
-      } catch (e) {
+      } catch {
         console.log('Cannot check MP4 support')
       }
       
@@ -246,7 +246,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, onSeek }) 
       
       <div className={`video-controls ${showControls ? 'visible' : ''}`}>
         {/* Progress Bar */}
-        <div className="progress-container">
+        <div className="progress-bar-container">
           <input
             type="range"
             min="0"
@@ -254,37 +254,33 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, onSeek }) 
             value={currentTime}
             onChange={handleSeek}
             className="progress-bar"
-            style={{
-              background: `linear-gradient(to right, #007bff 0%, #007bff ${progressPercentage}%, rgba(255,255,255,0.3) ${progressPercentage}%, rgba(255,255,255,0.3) 100%)`
-            }}
           />
+          <div className="progress-fill" style={{ width: `${progressPercentage}%` }} />
         </div>
 
-        {/* Control Buttons */}
-        <div className="controls-row">
+        {/* Controls Bar */}
+        <div className="controls-bar">
           <div className="left-controls">
-            <button onClick={togglePlay} className="control-btn play-pause-btn">
+            <button onClick={togglePlay} className="control-btn play-btn">
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
             </button>
             
-            <button onClick={() => skipTime(-10)} className="control-btn skip-btn">
-              <RotateCcw size={18} />
-              <span className="skip-text">10</span>
+            <button onClick={() => skipTime(-10)} className="control-btn">
+              <RotateCcw size={20} />
             </button>
             
-            <button onClick={() => skipTime(10)} className="control-btn skip-btn">
-              <span className="skip-text">10</span>
-              <RotateCw size={18} />
+            <button onClick={() => skipTime(10)} className="control-btn">
+              <RotateCw size={20} />
             </button>
 
             <div className="volume-control">
               <button onClick={toggleMute} className="control-btn volume-btn">
                 {isMuted || volume === 0 ? (
-                  <VolumeX size={18} />
+                  <VolumeX size={20} />
                 ) : volume < 0.5 ? (
-                  <Volume1 size={18} />
+                  <Volume1 size={20} />
                 ) : (
-                  <Volume2 size={18} />
+                  <Volume2 size={20} />
                 )}
               </button>
               <input
@@ -303,9 +299,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, onSeek }) 
             </div>
           </div>
 
+
           <div className="right-controls">
             <div className="speed-control">
-              <Settings size={16} />
+              <span className="speed-label">{playbackRate}x</span>
               <input
                 type="range"
                 min="0.5"
@@ -315,11 +312,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, onSeek }) 
                 onChange={handleSpeedChange}
                 className="speed-slider"
               />
-              <span className="speed-display">{playbackRate}x</span>
             </div>
+            
+            <button className="control-btn cc-btn">
+              <span className="cc-text">CC</span>
+            </button>
 
-            <button onClick={toggleFullscreen} className="control-btn fullscreen-btn">
-              {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            <button className="control-btn">
+              <Settings size={20} />
+            </button>
+
+            <button onClick={toggleFullscreen} className="control-btn">
+              {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
             </button>
           </div>
         </div>

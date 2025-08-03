@@ -11,8 +11,8 @@ function PopularClips({ onVideoSelect }: PopularClipsProps) {
   return (
     <section className="popular-clips">
       <div className="popular-clips-container">
-        <h2 className="popular-clips-title">Featured Content</h2>
-        <p className="popular-clips-subtitle">Most watched moments from recent meetings</p>
+        <h2 className="popular-clips-title">Featured Discussions</h2>
+        <p className="popular-clips-subtitle">Explore the most important moments and decisions from recent San Francisco council meetings</p>
         
         <div className="popular-clips-grid">
           {popularVideos.map((video) => (
