@@ -1,14 +1,24 @@
-import { useState } from 'react'
-
 interface SearchHeaderProps {
   searchQuery: string
   onSearchChange: (query: string) => void
+  startDate: string
+  endDate: string
+  onStartDateChange: (date: string) => void
+  onEndDateChange: (date: string) => void
+  selectedTopic: string
+  onTopicChange: (topic: string) => void
 }
 
-function SearchHeader({ searchQuery, onSearchChange }: SearchHeaderProps) {
-  const [dateFilter, setDateFilter] = useState('Jan 2024')
-  const [districtFilter, setDistrictFilter] = useState('All Districts')
-  const [topicFilter, setTopicFilter] = useState('All Topics')
+function SearchHeader({ 
+  searchQuery, 
+  onSearchChange, 
+  startDate, 
+  endDate, 
+  onStartDateChange, 
+  onEndDateChange, 
+  selectedTopic, 
+  onTopicChange 
+}: SearchHeaderProps) {
 
   return (
     <header className="search-header">
@@ -42,50 +52,47 @@ function SearchHeader({ searchQuery, onSearchChange }: SearchHeaderProps) {
         </div>
 
         <div className="filters">
-          <div className="filter-group">
+          <div className="filter-group date-range-group">
             <label className="filter-label">Date Range</label>
-            <select 
-              value={dateFilter} 
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="filter-select"
-              aria-label="Filter by date"
-            >
-              <option>Jan 2024</option>
-              <option>Dec 2023</option>
-              <option>Nov 2023</option>
-              <option>Last 6 months</option>
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label className="filter-label">District</label>
-            <select 
-              value={districtFilter} 
-              onChange={(e) => setDistrictFilter(e.target.value)}
-              className="filter-select"
-              aria-label="Filter by district"
-            >
-              <option>All Districts</option>
-              <option>District 1</option>
-              <option>District 2</option>
-              <option>District 3</option>
-              <option>SOMA</option>
-            </select>
+            <div className="date-range-inputs">
+              <div className="date-input-wrapper">
+                <label className="date-input-label">From</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => onStartDateChange(e.target.value)}
+                  className="date-input"
+                  aria-label="Start date"
+                />
+              </div>
+              <div className="date-input-wrapper">
+                <label className="date-input-label">To</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => onEndDateChange(e.target.value)}
+                  className="date-input"
+                  aria-label="End date"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="filter-group">
             <label className="filter-label">Topic</label>
             <select 
-              value={topicFilter} 
-              onChange={(e) => setTopicFilter(e.target.value)}
+              value={selectedTopic} 
+              onChange={(e) => onTopicChange(e.target.value)}
               className="filter-select"
               aria-label="Filter by topic"
             >
-              <option>All Topics</option>
-              <option>Housing</option>
-              <option>Transportation</option>
-              <option>Budget</option>
-              <option>Public Safety</option>
+              <option value="">All Topics</option>
+              <option value="Housing">Housing</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Budget">Budget</option>
+              <option value="Public Safety">Public Safety</option>
+              <option value="Planning">Planning</option>
+              <option value="Environment">Environment</option>
             </select>
           </div>
         </div>

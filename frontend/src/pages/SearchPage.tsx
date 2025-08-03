@@ -7,6 +7,9 @@ import type { VideoSegment } from '../types'
 
 function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [selectedTopic, setSelectedTopic] = useState('')
   const navigate = useNavigate()
 
   const handleVideoSelect = (video: VideoSegment) => {
@@ -14,24 +17,34 @@ function SearchPage() {
   }
 
   return (
-    <>
-      <div className="search-page-container">
-        <SearchHeader 
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
+    <div className="search-page-container">
+      <div className="home-page-grid">
+        <div className="left-column">
+          <SearchHeader 
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            selectedTopic={selectedTopic}
+            onTopicChange={setSelectedTopic}
+          />
+          
+          <ResultsContainer 
+            searchQuery={searchQuery}
+            startDate={startDate}
+            endDate={endDate}
+            selectedTopic={selectedTopic}
+            onVideoSelect={handleVideoSelect}
+          />
+        </div>
         
-        <ResultsContainer 
-          searchQuery={searchQuery}
-          onVideoSelect={handleVideoSelect}
-        />
+        <div className="right-column">
+          <PopularClips onVideoSelect={handleVideoSelect} />
+        </div>
       </div>
-      
-      {/* Show popular clips when no search query - outside container */}
-      {!searchQuery && (
-        <PopularClips onVideoSelect={handleVideoSelect} />
-      )}
-    </>
+    </div>
   )
 }
 

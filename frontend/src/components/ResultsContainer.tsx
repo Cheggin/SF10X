@@ -4,16 +4,31 @@ import { mockVideoData } from '../data/mockData'
 
 interface ResultsContainerProps {
   searchQuery: string
+  startDate: string
+  endDate: string
+  selectedTopic: string
   onVideoSelect: (video: VideoSegment) => void
 }
 
-function ResultsContainer({ searchQuery, onVideoSelect }: ResultsContainerProps) {
-  const filteredVideos = mockVideoData.filter(video => 
-    searchQuery === '' || 
-    video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    video.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    video.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
+function ResultsContainer({ searchQuery, startDate, endDate, selectedTopic, onVideoSelect }: ResultsContainerProps) {
+  const filteredVideos = mockVideoData.filter(video => {
+    // Text search filter
+    const matchesSearch = searchQuery === '' || 
+      video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      video.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      video.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    
+    // Topic filter
+    const matchesTopic = selectedTopic === '' || 
+      video.tags.some(tag => tag.toLowerCase().includes(selectedTopic.toLowerCase()))
+    
+    // Date range filter (basic implementation - you can enhance this with actual date parsing)
+    const matchesDateRange = (!startDate && !endDate) || 
+      (startDate === '' && endDate === '') ||
+      true // For now, accepting all dates - you can implement proper date filtering here
+    
+    return matchesSearch && matchesTopic && matchesDateRange
+  })
 
   return (
     <main className="results-container">
