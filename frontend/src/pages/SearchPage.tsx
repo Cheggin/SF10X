@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { mockVideoData, getPopularVideos, loadVideoDataWithMetadata } from '../data/mockData'
+import { mockVideoData, getPopularVideos, loadVideoDataWithMetadata, getMostWatchedVideos } from '../data/mockData'
 import { fetchSummary } from '../services/api'
 import type { VideoSegment } from '../types'
+import VideoThumbnail from '../components/VideoThumbnail'
 
 function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -14,8 +15,8 @@ function SearchPage() {
   const [isLoadingData, setIsLoadingData] = useState(true)
   const navigate = useNavigate()
 
-  const handleVideoSelect = (videoId: string) => {
-    navigate(`/video/${videoId}`)
+  const handleVideoSelect = (videoId: string, startTime?: number) => {
+    navigate(`/video/${videoId}`, { state: { startTime } })
   }
 
   const handleAIModeClick = () => {
@@ -92,19 +93,8 @@ function SearchPage() {
     setDisplayedResults(videoData)
   }
 
-  // Transform popular videos for FeaturedDiscussionsCard with real summaries
-  const featuredDiscussions = getPopularVideos().map(video => {
-    const videoWithRealSummary = videoData.find(v => v.id === video.id) || video
-    return {
-      id: video.id,
-      title: video.title,
-      duration: video.duration,
-      date: video.date,
-      tags: video.tags,
-      summary: isLoadingData ? 'Loading meeting summary...' : videoWithRealSummary.summary,
-      views: videoWithRealSummary.views || '1.2k views'
-    }
-  })
+  // Use mock data directly for Most Watched section (no API calls)
+  const featuredDiscussions = getMostWatchedVideos()
 
 
   // Show different layouts based on whether we're showing search results
@@ -274,33 +264,25 @@ function SearchPage() {
           </form>
         </div>
 
-        {/* Featured Discussions Section */}
+        {/* Most Watched Section */}
         <div className="featured-discussions-section">
-          <h2 className="section-title">Featured Discussions</h2>
+          <h2 className="section-title">Most Watched</h2>
           <div className="featured-discussions-grid">
             {featuredDiscussions.map((discussion) => (
               <div 
                 key={discussion.id}
                 className="featured-discussion-card"
-                onClick={() => handleVideoSelect(discussion.id)}
+                onClick={() => handleVideoSelect(discussion.id, discussion.startTime)}
               >
                 <div className="featured-thumbnail">
-                  <img 
-                    src={`/thumbnails/${discussion.id}.jpg`}
+                  <VideoThumbnail
+                    videoId={discussion.id}
+                    videoUrl={discussion.videoUrl}
+                    timestamp={discussion.startTime}
                     alt={`Thumbnail for ${discussion.title}`}
                     className="thumbnail-image"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const placeholder = target.nextElementSibling;
-                      if (placeholder) placeholder.setAttribute('style', 'display: flex');
-                    }}
+                    fallbackSrc={`/thumbnails/${discussion.id}.jpg`}
                   />
-                  <div className="thumbnail-placeholder" style={{ display: 'none' }}>
-                    <svg className="play-icon w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="5,3 19,12 5,21" />
-                    </svg>
-                  </div>
                   <span className="duration-badge">{discussion.duration}</span>
                 </div>
                 <div className="featured-content">

@@ -11,4 +11,5 @@ export interface VideoSegment {
   clipId?: string
   viewId?: string
   views?: string
+  startTime?: number  // Start time in seconds for featured/most watched videos
 }

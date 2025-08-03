@@ -14,11 +14,12 @@ import {
 
 interface VideoPlayerProps {
   src: string
+  startTime?: number
   onTimeUpdate?: (currentTime: number, duration: number) => void
   onSeek?: (time: number) => void
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, onSeek }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, startTime, onTimeUpdate, onSeek }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -117,6 +118,35 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, onSeek }) 
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
     }
   }, [onTimeUpdate])
+
+  // Seek to startTime when video is ready
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !startTime) return
+
+    const handleCanPlay = () => {
+      if (video.readyState >= 3) { // HAVE_FUTURE_DATA
+        console.log(`Seeking to start time: ${startTime} seconds`)
+        video.currentTime = startTime
+        setCurrentTime(startTime)
+        // Remove the event listener after seeking
+        video.removeEventListener('canplay', handleCanPlay)
+      }
+    }
+
+    // If video is already ready, seek immediately
+    if (video.readyState >= 3) {
+      video.currentTime = startTime
+      setCurrentTime(startTime)
+    } else {
+      // Otherwise wait for the video to be ready
+      video.addEventListener('canplay', handleCanPlay)
+    }
+
+    return () => {
+      video.removeEventListener('canplay', handleCanPlay)
+    }
+  }, [startTime])
 
 
   const togglePlay = () => {

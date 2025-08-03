@@ -1,10 +1,12 @@
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import VideoPlayerPage from '../components/VideoPlayerPage'
 import { getVideoById } from '../data/mockData'
 
 function VideoPlayerPageRoute() {
   const { videoId } = useParams<{ videoId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const startTime = location.state?.startTime
   
   const video = videoId ? getVideoById(videoId) : undefined
 
@@ -29,6 +31,7 @@ function VideoPlayerPageRoute() {
     <VideoPlayerPage 
       video={video}
       onBack={handleBack}
+      startTime={startTime}
     />
   )
 }

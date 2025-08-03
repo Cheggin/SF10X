@@ -9,9 +9,10 @@ import { loadVideoDataWithMetadata } from '../data/mockData'
 interface VideoPlayerPageProps {
   video: VideoSegment
   onBack: () => void
+  startTime?: number
 }
 
-function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
+function VideoPlayerPage({ video, onBack, startTime }: VideoPlayerPageProps) {
   const navigate = useNavigate()
   const [currentSegment, setCurrentSegment] = useState<number | null>(null)
   const [currentTime, setCurrentTime] = useState<number>(0)
@@ -270,6 +271,7 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
             <div className="video-container-modern">
               <VideoPlayer 
                 src={video.videoUrl || `/videos/${video.id}.mp4`}
+                startTime={startTime}
                 onTimeUpdate={(currentTime, duration) => {
                   setCurrentTime(currentTime)
                   
@@ -304,7 +306,7 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
                   </svg>
                   <span className="view-count-text">{video.views || 'Loading...'}</span>
                   <span className="stats-separator">•</span>
-                  <span className="video-date">{video.date}, 2024</span>
+                  <span className="video-date">{video.date}, 2025</span>
                 </div>
               </div>
 

@@ -62,55 +62,78 @@ const AIChatPage: React.FC = () => {
     setIsLoading(true)
 
     try {
-      const response = await fetch('http://0.0.0.0:8000/generate', {
+      console.log('Sending request to API:', {
+        url: 'http://192.168.14.116:8000/generate',
         method: 'POST',
+        body: {
+          session_id: 'test-123',
+          user_query: inputText
+        }
+      })
+
+      const response = await fetch('http://192.168.14.116:8000/generate', {
+        method: 'POST',
+        mode: 'cors',
         headers: {
+          'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          session_id: 'ai-rag-mode',
+          session_id: 'test-123',
           user_query: inputText
         })
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response headers:', response.headers)
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorText = await response.text()
+        console.error('Error response:', errorText)
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
       }
 
       const data = await response.json()
+      console.log('API Response:', data)
       
-      // Mock sources for demonstration - in real implementation, these would come from the API
-      const mockSources: Source[] = [
-        {
-          id: '1',
-          title: 'Board of Supervisors Meeting',
-          date: 'Jan 15, 2024',
-          snippet: 'Discussion on affordable housing requirements in SOMA district...',
-          videoId: '50121_10'
-        },
-        {
-          id: '2',
-          title: 'Transit Budget Discussion',
-          date: 'Jan 10, 2024',
-          snippet: 'Muni funding changes and Market St bike lanes were discussed...',
-          videoId: '50188_10'
-        }
-      ]
+      // Try different possible response fields
+      let responseText = data.response || data.message || data.result || data.answer || data.text
+      
+      // If data is a string, use it directly
+      if (typeof data === 'string') {
+        responseText = data
+      }
+      
+      // Log what we're actually getting
+      console.log('Extracted response text:', responseText)
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'Based on the city council meeting records, here\'s what I found...',
+        text: responseText || `I received your message but got an unexpected response format. Raw response: ${JSON.stringify(data)}`,
         sender: 'ai',
         timestamp: new Date(),
-        sources: mockSources
+        sources: [] // Sources can be added from the API response if available
       }
 
       setMessages(prev => [...prev, aiMessage])
     } catch (error) {
       console.error('Error sending message:', error)
+      
+      let errorText = 'An error occurred while processing your request.'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorText = 'Unable to connect to the server. Please check if the API is running at http://192.168.14.116:8000'
+        } else if (error.message.includes('405')) {
+          errorText = 'The /generate endpoint is not available. The backend code for this endpoint appears to be commented out. Please uncomment the @app.post("/generate") endpoint in app/main.py'
+        } else {
+          errorText = `Error: ${error.message}`
+        }
+      }
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Sorry, I\'m having trouble connecting right now. Please try again later.',
+        text: errorText,
         sender: 'ai',
         timestamp: new Date()
       }
@@ -120,7 +143,7 @@ const AIChatPage: React.FC = () => {
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       sendMessage()
@@ -217,7 +240,7 @@ const AIChatPage: React.FC = () => {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 placeholder="Ask about city council meetings..."
                 className="ai-input"
                 disabled={isLoading}

@@ -7,34 +7,37 @@ const baseVideoData: Omit<VideoSegment, 'duration' | 'date'>[] = [
     id: '50121_10',
     title: 'Board of Supervisors Meeting | ID # 50121',
     speakers: ['Connie Chan', 'Matt Dorsey', 'Joel Engardio', 'Jackie Fielder', 'Bilal Mahmood'],
-    summary: 'New affordable housing rules for SOMA. Passed 7-4 with 18% requirement.',
-    tags: ['housing', 'development', 'affordable'],
+    summary: 'Discussion reveals significant gap between SF\'s 2030 renewable energy targets and current progress, with officials acknowledging major challenges ahead.',
+    tags: ['environment', 'renewable energy', 'climate'],
     videoUrl: '/videos/50121_10.mp4',
     clipId: '50121',
     viewId: '10',
-    views: '2.3k views'
+    views: '2.3k views',
+    startTime: 6295  // 1:44:55
   },
   {
     id: '50188_10',
     title: 'Board of Supervisors Meeting | ID # 50188',
     speakers: ['Rafael Mandelman', 'Myrna Melgar', 'Danny Sauter', 'Stephen Sherrill', 'Shamann Walton'],
-    summary: 'Muni funding changes and Market St bike lanes. $15M approved for infrastructure upgrades.',
-    tags: ['transportation', 'budget', 'infrastructure'],
+    summary: 'Fire department gets appropriated nearly 8 million dollars for 2024-2025 year.',
+    tags: ['fire department', 'budget', 'public safety'],
     videoUrl: '/videos/50188_10.mp4',
     clipId: '50188',
     viewId: '10',
-    views: '1.8k views'
+    views: '1.8k views',
+    startTime: 1409  // 23:29
   },
   {
     id: '50291_10',
     title: 'Board of Supervisors Meeting | ID # 50291',
     speakers: ['Chyanne Chen', 'Connie Chan', 'Matt Dorsey', 'Joel Engardio'],
-    summary: 'Citizens request construction impact relief. Committee formed to review proposals.',
-    tags: ['business', 'relief', 'public-comment'],
+    summary: 'Public requests for a class-action lawsuit to be filed against state-sponsored terrorism of San Francisco, criticizing slow decision-making.',
+    tags: ['public-comment', 'legal', 'governance'],
     videoUrl: '/videos/50291_10.mp4',
     clipId: '50291',
     viewId: '10',
-    views: '947 views'
+    views: '947 views',
+    startTime: 5085  // 1:24:45
   },
   {
     id: '50412_10',
@@ -113,4 +116,55 @@ export const getVideoById = (id: string): VideoSegment | undefined => {
 export const getPopularVideos = (): VideoSegment[] => {
   // Return the first 3 videos as featured/popular
   return mockVideoData.slice(0, 3)
+}
+
+// Get the original mock data for Most Watched section (without API updates)
+export const getMostWatchedVideos = (): VideoSegment[] => {
+  // Hardcode the specific videos and their data for Most Watched
+  const mostWatchedData: VideoSegment[] = [
+    {
+      id: '50121_10',
+      title: 'Board of Supervisors Meeting | ID # 50121',
+      speakers: ['Connie Chan', 'Matt Dorsey', 'Joel Engardio', 'Jackie Fielder', 'Bilal Mahmood'],
+      summary: 'Discussion reveals significant gap between SF\'s 2030 renewable energy targets and current progress, with officials acknowledging major challenges ahead.',
+      tags: ['environment', 'renewable energy', 'climate'],
+      videoUrl: '/videos/50121_10.mp4',
+      clipId: '50121',
+      viewId: '10',
+      views: '2.3k views',
+      startTime: 6295,  // 1:44:55
+      duration: '2:15:00',
+      date: 'Jun 3'
+    },
+    {
+      id: '50188_10',
+      title: 'Board of Supervisors Meeting | ID # 50188',
+      speakers: ['Rafael Mandelman', 'Myrna Melgar', 'Danny Sauter', 'Stephen Sherrill', 'Shamann Walton'],
+      summary: 'Fire department gets appropriated nearly 8 million dollars for 2024-2025 year.',
+      tags: ['fire department', 'budget', 'public safety'],
+      videoUrl: '/videos/50188_10.mp4',
+      clipId: '50188',
+      viewId: '10',
+      views: '1.8k views',
+      startTime: 1409,  // 23:29
+      duration: '1:45:00',
+      date: 'Jun 10'
+    },
+    {
+      id: '50291_10',
+      title: 'Board of Supervisors Meeting | ID # 50291',
+      speakers: ['Chyanne Chen', 'Connie Chan', 'Matt Dorsey', 'Joel Engardio'],
+      summary: 'Public requests for a class-action lawsuit to be filed against state-sponsored terrorism of San Francisco, criticizing slow decision-making.',
+      tags: ['public-comment', 'legal', 'governance'],
+      videoUrl: '/videos/50291_10.mp4',
+      clipId: '50291',
+      viewId: '10',
+      views: '947 views',
+      startTime: 5085,  // 1:24:45
+      duration: '2:30:00',
+      date: 'Jun 24'
+    }
+  ]
+  
+  return mostWatchedData
 }
