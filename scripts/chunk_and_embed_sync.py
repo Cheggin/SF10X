@@ -23,7 +23,8 @@ from sqlalchemy import create_engine, select, MetaData
 from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 from chonkie import SemanticChunker
-from model2vec import StaticModel
+import google.generativeai as genai
+import numpy as np
 
 # Import database models
 import sys
@@ -38,9 +39,35 @@ project_root = Path(__file__).parent.parent
 transcripts_dir = project_root / "transcripts"
 
 
+class GeminiEmbeddingWrapper:
+    """Wrapper to make Gemini embeddings compatible with chonkie"""
+    def __init__(self, api_key: str):
+        genai.configure(api_key=api_key)
+        self.model = 'models/text-embedding-004'
+        
+    def encode(self, texts: List[str], batch_size: int = 32, **kwargs):
+        """Encode texts to embeddings using Gemini API"""
+        embeddings = []
+        
+        # Process in batches to respect API limits
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            
+            # Generate embeddings for batch
+            batch_embeddings = genai.embed_content(
+                model=self.model,
+                content=batch,
+                task_type="retrieval_document"
+            )
+            
+            embeddings.extend(batch_embeddings['embedding'])
+            
+        return np.array(embeddings)
+
+
 class SyncChunkingPipeline:
     def __init__(self):
-        """Initialize chunking pipeline with model2vec embeddings"""
+        """Initialize chunking pipeline with Gemini embeddings"""
         # Create synchronous database engine
         DATABASE_URL = os.getenv("SUPABASE_DB_URL")
         # Convert asyncpg URL to psycopg2 URL for sync
@@ -57,21 +84,25 @@ class SyncChunkingPipeline:
         
         self.Session = sessionmaker(bind=self.engine)
         
-        # Initialize model2vec embedding model
-        logger.info("Loading model2vec embeddings...")
-        self.embeddings = StaticModel.from_pretrained('minishlab/potion-base-8M')
+        # Initialize Gemini embedding model
+        logger.info("Loading Gemini embeddings...")
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY not found in environment variables")
+            
+        self.embeddings = GeminiEmbeddingWrapper(api_key)
         
-        # Initialize semantic chunker with model2vec
-        logger.info("Initializing semantic chunker...")
+        # Initialize semantic chunker with Gemini wrapper
+        logger.info("Initializing semantic chunker with Gemini embeddings...")
         self.chunker = SemanticChunker(
-            embedding_model='minishlab/potion-base-8M',
+            embedding_model=self.embeddings,
             chunk_size=1000,  # Target chunk size in tokens
             threshold=0.5,  # Threshold for semantic similarity
             min_chunk_size=200,  # Minimum chunk size
             min_sentences=1  # Minimum sentences per chunk
         )
         
-        logger.info("Initialized chunking pipeline with model2vec embeddings (256 dimensions)")
+        logger.info("Initialized chunking pipeline with Gemini embeddings (768 dimensions)")
 
     def get_2025_meetings(self, session: Session) -> List[Meeting]:
         """Get all meetings from 2025 onwards"""
@@ -141,13 +172,13 @@ class SyncChunkingPipeline:
             
             logger.debug(f"Generating embeddings for {len(texts)} chunks")
             
-            # Generate embeddings using model2vec (synchronous)
+            # Generate embeddings using Gemini (synchronous)
             embeddings = self.embeddings.encode(texts)
             
             # Convert numpy arrays to lists for JSON serialization
             embeddings_list = [emb.tolist() for emb in embeddings]
             
-            logger.info(f"Generated {len(embeddings_list)} embeddings (256 dimensions each)")
+            logger.info(f"Generated {len(embeddings_list)} embeddings (768 dimensions each)")
             return embeddings_list
             
         except Exception as e:

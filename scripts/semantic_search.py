@@ -11,14 +11,13 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 import numpy as np
 
-# Enable MPS fallback for torch on Mac
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+# Using Google Gemini embeddings via API
 
 from loguru import logger
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
-from model2vec import StaticModel
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 # Import database models
 import sys
@@ -44,27 +43,39 @@ class SemanticSearcher:
         
         self.Session = sessionmaker(bind=self.engine)
         
-        # Initialize model2vec embedding model
-        logger.info("Loading model2vec embeddings...")
-        self.embeddings = StaticModel.from_pretrained('minishlab/potion-base-8M')
+        # Initialize Google Gemini embedding model
+        logger.info("Loading Google Gemini embeddings...")
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY not found in environment variables")
+        
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/text-embedding-004",
+            google_api_key=api_key
+        )
         
         logger.info("Semantic searcher initialized")
 
     def embed_query(self, query: str) -> List[float]:
         """Generate embedding for search query"""
-        embedding = self.embeddings.encode([query])[0]
-        return embedding.tolist()
+        # Use embed_query for single queries (more efficient than embed_documents)
+        embedding = self.embeddings.embed_query(query)
+        return embedding
 
     def search_chunks(self, query: str, limit: int = 10) -> List[Dict]:
         """Search for most relevant chunks using cosine similarity"""
         # Generate query embedding
+        logger.info("Generating query embedding...")
         query_embedding = self.embed_query(query)
+        logger.info(f"Generated embedding with {len(query_embedding)} dimensions")
         
         # Convert to PostgreSQL array format
         embedding_str = '[' + ','.join(map(str, query_embedding)) + ']'
+        logger.info("Prepared embedding string for SQL query")
         
         # SQL query with cosine similarity using pgvector
-        sql = text(f"""
+        logger.info("Executing SQL query...")
+        sql_query = f"""
         SELECT 
             mc.meeting_id,
             mc.chunk_index,
@@ -75,27 +86,39 @@ class SemanticSearcher:
             1 - (mc.embedding <=> '{embedding_str}'::vector) AS similarity_score
         FROM meeting_chunks mc
         JOIN meetings m ON mc.meeting_id = m.meeting_id
-        WHERE m.date >= '2025-01-01'
-        ORDER BY mc.embedding <=> '{embedding_str}'::vector
+        ORDER BY similarity_score
         LIMIT {limit}
-        """)
+        """
         
-        with self.Session() as session:
-            result = session.execute(sql)
-            
-            chunks = []
-            for row in result:
-                chunks.append({
-                    'meeting_id': row.meeting_id,
-                    'chunk_index': row.chunk_index,
-                    'chunk_text': row.chunk_text,
-                    'metadata': row.metadata,
-                    'meeting_title': row.title,
-                    'meeting_date': row.date,
-                    'similarity_score': float(row.similarity_score)
-                })
-            
-            return chunks
+        logger.info(f"SQL Query: {sql_query}")
+        sql = text(sql_query)
+        
+        try:
+            with self.Session() as session:
+                logger.info("Connected to database, executing query...")
+                # Add timeout to prevent hanging
+                # result = session.execute(sql, execution_options={'timeout': 30})
+                logger.info("Query executed, processing results...")
+                
+                chunks = []
+                result = []
+                for row in result:
+                    chunks.append({
+                        'meeting_id': row.meeting_id,
+                        'chunk_index': row.chunk_index,
+                        'chunk_text': row.chunk_text,
+                        'metadata': row.metadata,
+                        'meeting_title': row.title,
+                        'meeting_date': row.date,
+                        'similarity_score': float(row.similarity_score)
+                    })
+                
+                logger.info(f"Found {len(chunks)} matching chunks")
+                return chunks
+        
+        except Exception as e:
+            logger.error(f"Database error: {e}")
+            return []
 
     def search_meetings_summary(self, query: str, limit: int = 5) -> List[Dict]:
         """Get meeting-level relevance by aggregating chunk scores"""
@@ -106,23 +129,23 @@ class SemanticSearcher:
         # SQL query to get top meetings by average similarity
         sql = text(f"""
         SELECT 
-            m.meeting_id,
+            mc.meeting_id,
+            mc.chunk_index,
+            mc.chunk_text,
+            mc.metadata as chunk_metadata,
             m.title,
             m.date,
-            COUNT(mc.id) as chunk_count,
-            AVG(1 - (mc.embedding <=> '{embedding_str}'::vector)) AS avg_similarity,
-            MAX(1 - (mc.embedding <=> '{embedding_str}'::vector)) AS max_similarity
-        FROM meetings m
-        JOIN meeting_chunks mc ON m.meeting_id = mc.meeting_id
+            m.metadata as meeting_metadata,
+            1 - (mc.embedding <=> '{embedding_str}'::vector) AS similarity_score
+        FROM meeting_chunks mc
+        JOIN meetings m ON mc.meeting_id = m.meeting_id 
         WHERE m.date >= '2025-01-01'
-        GROUP BY m.meeting_id, m.title, m.date
-        ORDER BY avg_similarity DESC
+        ORDER BY similarity_score DESC
         LIMIT {limit}
-        """)
-        
+        """)        
         with self.Session() as session:
             result = session.execute(sql)
-            
+            result = []
             meetings = []
             for row in result:
                 meetings.append({
