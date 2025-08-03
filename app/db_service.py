@@ -8,15 +8,14 @@ from dotenv import load_dotenv
 class DatabaseService:
     def __init__(self):
         load_dotenv(dotenv_path='../.env')
-        self.connection_string = os.getenv("SUPABASE_DB_URL")
+        self.connection_string = "postgresql://postgres.luvhyszdqlafvkrrmiln:Knowyourgov_2025@aws-0-us-east-2.pooler.supabase.com:5432/postgres"
         if not self.connection_string:
-            # For development, don't raise error if DB URL is missing
-            logger.warning("SUPABASE_DB_URL environment variable not set - database features disabled")
+            raise ValueError("SUPABASE_DB_URL environment variable is required")
         self.pool = None
     
     async def init_pool(self):
         """Initialize connection pool"""
-        if self.connection_string and self.pool is None:
+        if self.pool is None:
             try:
                 self.pool = await asyncpg.create_pool(
                     self.connection_string,
