@@ -302,7 +302,7 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                     <circle cx="12" cy="12" r="3"/>
                   </svg>
-                  <span className="view-count-text">1,247 views</span>
+                  <span className="view-count-text">{video.views || 'Loading...'}</span>
                   <span className="stats-separator">•</span>
                   <span className="video-date">{video.date}, 2024</span>
                 </div>
