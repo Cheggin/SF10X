@@ -19,6 +19,7 @@ class Meeting(Base):
     date = Column(DateTime, nullable=False)
     duration = Column(Interval)
     title = Column(Text)
+    agenda_timestamps = Column(ARRAY(JSONB))  # Store agenda timestamps with time and agenda names
     meta_data = Column("metadata", JSONB)
     created_at = Column(DateTime, default=datetime.utcnow)
     

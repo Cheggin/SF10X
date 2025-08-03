@@ -122,9 +122,9 @@ class MetadataUploader:
                 {"meeting_id": meeting_id}
             )
             
-            if existing.fetchone():
-                logger.debug(f"Meeting {meeting_id} already exists, skipping")
-                return False
+            # if existing.fetchone():
+            #     logger.debug(f"Meeting {meeting_id} already exists, skipping")
+            #     return False
             
             # Create Meeting object
             meeting = Meeting(
@@ -135,6 +135,7 @@ class MetadataUploader:
                 date=date_obj or datetime.now(),  # Use current time if date parsing fails
                 duration=duration_obj,
                 title=meeting_data.get('title'),
+                agenda_timestamps=meeting_data.get('timestamps'),  # Store agenda timestamps
                 meta_data={
                     'video_url': meeting_data.get('video_url'),
                     'agenda_url': meeting_data.get('agenda_url'),
