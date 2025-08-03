@@ -214,93 +214,96 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
       <div className="modern-content-grid">
         {/* Video Section */}
         <div className="video-section">
-          <div className="video-container-modern">
-            <VideoPlayer 
-              src={video.videoUrl || `/videos/${video.id}.mp4`}
-              onTimeUpdate={(currentTime, duration) => {
-                setCurrentTime(currentTime)
-                
-                // Update current segment based on time
-                const activeSegment = videoSegments.findIndex((segment, index) => {
-                  const [startTime] = segment.time.split('-')
-                  const startSeconds = parseTimeToSeconds(startTime)
-                  const nextSegment = videoSegments[index + 1]
-                  const endSeconds = nextSegment ? parseTimeToSeconds(nextSegment.time.split('-')[0]) : duration
+          <div className="video-wrapper-connected">
+            <div className="video-container-modern">
+              <VideoPlayer 
+                src={video.videoUrl || `/videos/${video.id}.mp4`}
+                onTimeUpdate={(currentTime, duration) => {
+                  setCurrentTime(currentTime)
                   
-                  return currentTime >= startSeconds && currentTime < endSeconds
-                })
-                
-                if (activeSegment !== -1 && activeSegment !== currentSegment) {
-                  setCurrentSegment(activeSegment)
-                }
-              }}
-              onSeek={(time) => {
-                setCurrentTime(time)
-              }}
-            />
-          </div>
-
-          {/* Video Stats */}
-          <div className="video-stats">
-            <div className="view-count">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <span className="view-count-text">1,247 views</span>
-              <span className="stats-separator">•</span>
-              <span className="video-date">{video.date}, 2024</span>
+                  // Update current segment based on time
+                  const activeSegment = videoSegments.findIndex((segment, index) => {
+                    const [startTime] = segment.time.split('-')
+                    const startSeconds = parseTimeToSeconds(startTime)
+                    const nextSegment = videoSegments[index + 1]
+                    const endSeconds = nextSegment ? parseTimeToSeconds(nextSegment.time.split('-')[0]) : duration
+                    
+                    return currentTime >= startSeconds && currentTime < endSeconds
+                  })
+                  
+                  if (activeSegment !== -1 && activeSegment !== currentSegment) {
+                    setCurrentSegment(activeSegment)
+                  }
+                }}
+                onSeek={(time) => {
+                  setCurrentTime(time)
+                }}
+              />
             </div>
-          </div>
 
-          {/* Video Info Card */}
-          <div className="video-info-card">
-            {/* Meeting Summary Section */}
-            {summaryData?.meeting_summary && (
-              <div className="meeting-summary-section-inline">
-                <h3>Meeting Summary</h3>
-                {summaryLoading && <span className="summary-loading-text">Loading...</span>}
-                <p>{summaryData.meeting_summary}</p>
+            {/* Video Info Card - Connected to video */}
+            <div className="video-info-card-connected">
+              {/* Video Stats - Now inside the info card */}
+              <div className="video-stats-inline">
+                <div className="view-count">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <span className="view-count-text">1,247 views</span>
+                  <span className="stats-separator">•</span>
+                  <span className="video-date">{video.date}, 2024</span>
+                </div>
               </div>
-            )}
-            
-            <div className="speakers-section">
-              <h3>Speakers</h3>
-              <p>{video.speakers.join(', ')} + 3 others</p>
-            </div>
-            <div className="actions-section">
-              <button className="modern-action-btn primary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                  <polyline points="17,21 17,13 7,13 7,21"/>
-                  <polyline points="7,3 7,8 15,8"/>
-                </svg>
-                Save
-              </button>
-              <button className="modern-action-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                  <polyline points="16,6 12,2 8,6"/>
-                  <line x1="12" y1="2" x2="12" y2="15"/>
-                </svg>
-                Share
-              </button>
-              <button className="modern-action-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14,2 14,8 20,8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                  <polyline points="10,9 9,9 8,9"/>
-                </svg>
-                Transcript
-              </button>
-              <button className="modern-action-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 3h18v18H3zM12 8v8m-4-4h8"/>
-                </svg>
-                Notes
-              </button>
+
+              {/* Meeting Summary Section */}
+              {summaryData?.meeting_summary && (
+                <div className="meeting-summary-section-inline">
+                  <h3>Meeting Summary</h3>
+                  {summaryLoading && <span className="summary-loading-text">Loading...</span>}
+                  <p>{summaryData.meeting_summary}</p>
+                </div>
+              )}
+              
+              <div className="speakers-section">
+                <h3>Speakers</h3>
+                <p>{video.speakers.join(', ')} + 3 others</p>
+              </div>
+              
+              <div className="actions-section">
+                <button className="modern-action-btn primary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17,21 17,13 7,13 7,21"/>
+                    <polyline points="7,3 7,8 15,8"/>
+                  </svg>
+                  Save
+                </button>
+                <button className="modern-action-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                    <polyline points="16,6 12,2 8,6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                  </svg>
+                  Share
+                </button>
+                <button className="modern-action-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10,9 9,9 8,9"/>
+                  </svg>
+                  Transcript
+                </button>
+                <button className="modern-action-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 3h18v18H3zM12 8v8m-4-4h8"/>
+                  </svg>
+                  Notes
+                </button>
+              </div>
             </div>
           </div>
         </div>

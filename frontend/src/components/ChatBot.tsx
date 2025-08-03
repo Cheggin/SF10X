@@ -205,7 +205,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ sessionId = 'default' }) => {
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .chatbot-container {
           position: fixed;
           bottom: 20px;

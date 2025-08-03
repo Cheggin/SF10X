@@ -1,21 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import SearchCard from '../components/homepage/SearchCard'
-import FeaturedDiscussionsCard from '../components/homepage/FeaturedDiscussionsCard'
-import MeetingResultsCard from '../components/homepage/MeetingResultsCard'
 import { mockVideoData, getPopularVideos } from '../data/mockData'
+import { fetchSummary } from '../services/api'
 import type { VideoSegment } from '../types'
 
 function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [displayedResults, setDisplayedResults] = useState<VideoSegment[]>(mockVideoData)
+  const [videoData, setVideoData] = useState<VideoSegment[]>(mockVideoData)
   const [isLoading, setIsLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
+  const [summariesLoaded, setSummariesLoaded] = useState(false)
   const navigate = useNavigate()
 
   const handleVideoSelect = (videoId: string) => {
     navigate(`/video/${videoId}`)
   }
+
+  const handleAIModeClick = () => {
+    navigate('/ai')
+  }
+
+  // Load real summaries from API
+  useEffect(() => {
+    const loadSummaries = async () => {
+      if (summariesLoaded) return
+      
+      try {
+        const updatedVideoData = await Promise.all(
+          mockVideoData.map(async (video) => {
+            try {
+              const summaryResponse = await fetchSummary(video.clipId || video.id, video.viewId || '10')
+              return {
+                ...video,
+                summary: summaryResponse.meeting_summary || video.summary
+              }
+            } catch (error) {
+              console.error(`Failed to load summary for video ${video.id}:`, error)
+              return video // Keep original data if fetch fails
+            }
+          })
+        )
+        
+        setVideoData(updatedVideoData)
+        setDisplayedResults(updatedVideoData)
+        setSummariesLoaded(true)
+      } catch (error) {
+        console.error('Error loading summaries:', error)
+      }
+    }
+
+    loadSummaries()
+  }, [])
 
   const handleSearch = () => {
     if (!searchQuery.trim()) return
@@ -25,8 +61,8 @@ function SearchPage() {
     
     // Simulate API call
     setTimeout(() => {
-      // Filter meetings based on search query
-      const filtered = mockVideoData.filter(video => 
+      // Filter meetings based on search query using videoData with real summaries
+      const filtered = videoData.filter(video => 
         video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         video.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
         video.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -43,30 +79,23 @@ function SearchPage() {
   const handleReturnHome = () => {
     setShowResults(false)
     setSearchQuery('')
-    setDisplayedResults(mockVideoData)
+    setDisplayedResults(videoData)
   }
 
-  // Transform popular videos for FeaturedDiscussionsCard
-  const featuredDiscussions = getPopularVideos().map(video => ({
-    id: video.id,
-    title: video.title,
-    duration: video.duration,
-    date: video.date,
-    tags: video.tags,
-    views: '1.2k views' // Mock view count
-  }))
+  // Transform popular videos for FeaturedDiscussionsCard with real summaries
+  const featuredDiscussions = getPopularVideos().map(video => {
+    const videoWithRealSummary = videoData.find(v => v.id === video.id) || video
+    return {
+      id: video.id,
+      title: video.title,
+      duration: video.duration,
+      date: video.date,
+      tags: video.tags,
+      summary: videoWithRealSummary.summary,
+      views: '1.2k views' // Mock view count
+    }
+  })
 
-  // Transform displayed results for MeetingResultsCard
-  const meetingResults = displayedResults.map(video => ({
-    id: video.id,
-    title: video.title,
-    date: video.date,
-    duration: video.duration,
-    speakers: video.speakers,
-    summary: video.summary,
-    tags: video.tags,
-    views: '847 views' // Mock view count
-  }))
 
   // Show different layouts based on whether we're showing search results
   if (showResults) {
@@ -166,7 +195,7 @@ function SearchPage() {
                         {result.speakers.length > 2 && ` +${result.speakers.length - 2}`}
                       </span>
                       <span className="meta-separator">•</span>
-                      <span className="result-views">{result.views}</span>
+                      <span className="result-views">847 views</span>
                     </div>
                     <p className="result-summary-search">{result.summary}</p>
                     <div className="result-tags-search">
@@ -220,6 +249,17 @@ function SearchPage() {
               <button type="submit" className="search-button-centered">
                 Search
               </button>
+              <button 
+                type="button" 
+                className="ai-mode-button"
+                onClick={handleAIModeClick}
+                title="AI Mode"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+                </svg>
+                <span className="ai-mode-text">AI</span>
+              </button>
             </div>
           </form>
         </div>
@@ -260,6 +300,9 @@ function SearchPage() {
                     <span className="meta-separator">•</span>
                     <span className="featured-views">{discussion.views}</span>
                   </div>
+                  {discussion.summary && (
+                    <p className="featured-summary">{discussion.summary}</p>
+                  )}
                   <div className="featured-tags">
                     {discussion.tags.slice(0, 2).map((tag, index) => (
                       <span key={index} className="tag tag-secondary tag-sm">
