@@ -16,3 +16,4 @@ class AgendaSummary(BaseModel):
 class SummaryResponse(BaseModel):
     meeting_summary: str = Field(..., description="Full meeting summary text")
     agenda_summary: List[AgendaSummary] = Field(..., description="List of agenda summaries")
+    tags: List[str] = Field(None, description="Tags associated with the agenda item")

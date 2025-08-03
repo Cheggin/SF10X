@@ -64,7 +64,7 @@ class DatabaseService:
             connection = await self.get_connection()
             
             query = """
-                SELECT main_summary, agenda_summary 
+                SELECT main_summary, agenda_summary, tags
                 FROM meeting_summary
                 WHERE meeting_id = $1
             """
@@ -74,6 +74,7 @@ class DatabaseService:
             if result:
                 meeting_summary = result['main_summary']
                 agenda_summary_raw = result['agenda_summary']
+                tags = result['tags'] if 'tags' in result else []
                 
                 # Process agenda_summary array - handle both dict and string items
                 agenda_summary = []
@@ -86,7 +87,7 @@ class DatabaseService:
                             # If item is already a dict, use it directly
                             agenda_summary.append(item)
                 
-                return meeting_summary, agenda_summary
+                return meeting_summary, agenda_summary, tags
             
             return None
             

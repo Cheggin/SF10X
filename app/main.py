@@ -79,7 +79,7 @@ async def get_summary(
                 detail=f"Meeting summary with clip_id='{clip_id}' and view_id='{view_id}' not found"
             )
         
-        meeting_summary, agenda_summaries = result
+        meeting_summary, agenda_summaries, tags = result
         
         # Convert agenda summaries to the expected format
         agenda_summary_list = [
@@ -92,7 +92,8 @@ async def get_summary(
         
         return SummaryResponse(
             meeting_summary=meeting_summary,
-            agenda_summary=agenda_summary_list
+            agenda_summary=agenda_summary_list,
+            tags=tags if tags else []
         )
         
     except HTTPException:
