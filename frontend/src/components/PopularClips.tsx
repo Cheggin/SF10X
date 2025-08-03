@@ -35,7 +35,7 @@ function PopularClips({ onVideoSelect }: PopularClipsProps) {
             </div>
             
             <div className="clip-content-sidebar">
-              <h3 className="clip-title-sidebar">{video.title}</h3>
+              <h3 className="clip-title-sidebar">Board of Supervisors</h3>
               <p className="clip-summary-sidebar">{video.summary}</p>
               
               <div className="clip-tags-sidebar">

@@ -38,16 +38,7 @@ function VideoCard({ video, onSelect }: VideoCardProps) {
         </div>
 
         <div className="video-main-content">
-          <h3 className="video-title-modern">{video.title}</h3>
-          
-          <div className="meeting-organizer">
-            <svg className="building-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 21h18"/>
-              <path d="M5 21V7l8-4v18"/>
-              <path d="M19 21V11l-6-4"/>
-            </svg>
-            <span>Board of Supervisors</span>
-          </div>
+          <h3 className="video-title-modern">Board of Supervisors</h3>
           
           <p className="video-summary-modern">{video.summary}</p>
         </div>

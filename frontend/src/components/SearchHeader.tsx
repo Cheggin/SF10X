@@ -40,7 +40,7 @@ function SearchHeader({
             </svg>
             <input
               type="text"
-              placeholder="Search meetings, topics, speakers, or agenda items..."
+              placeholder="Search meeting topics, descriptions, or agenda items..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="search-input"

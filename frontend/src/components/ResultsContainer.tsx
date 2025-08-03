@@ -12,9 +12,8 @@ interface ResultsContainerProps {
 
 function ResultsContainer({ searchQuery, startDate, endDate, selectedTopic, onVideoSelect }: ResultsContainerProps) {
   const filteredVideos = mockVideoData.filter(video => {
-    // Text search filter
+    // Text search filter (search in summary and tags only)
     const matchesSearch = searchQuery === '' || 
-      video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       video.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
       video.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
     
