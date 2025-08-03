@@ -23,6 +23,10 @@ function SearchPage() {
     navigate('/ai')
   }
 
+  const handleArchiveClick = () => {
+    navigate('/archive')
+  }
+
   // Load real video metadata and summaries from API
   useEffect(() => {
     const loadVideoDataAndSummaries = async () => {
@@ -32,14 +36,18 @@ function SearchPage() {
         // First load video data with real metadata
         const videoDataWithMetadata = await loadVideoDataWithMetadata()
         
-        // Then load summaries from API
+        // Then load summaries and tags from API
         const updatedVideoData = await Promise.all(
           videoDataWithMetadata.map(async (video) => {
             try {
               const summaryResponse = await fetchSummary(video.clipId || video.id, video.viewId || '10')
               return {
                 ...video,
-                summary: summaryResponse.meeting_summary || video.summary
+                summary: summaryResponse.meeting_summary || video.summary,
+                // Add API tags to existing tags (avoid duplicates)
+                tags: summaryResponse.tags 
+                  ? [...new Set([...video.tags, ...summaryResponse.tags])]
+                  : video.tags
               }
             } catch (error) {
               console.error(`Failed to load summary for video ${video.id}:`, error)
@@ -199,7 +207,7 @@ function SearchPage() {
                     </div>
                     <p className="result-summary-search">{result.summary}</p>
                     <div className="result-tags-search">
-                      {result.tags.map((tag, index) => (
+                      {result.tags.slice(0, 3).map((tag, index) => (
                         <span key={index} className="tag tag-default tag-sm">
                           {tag}
                         </span>
@@ -262,6 +270,21 @@ function SearchPage() {
               </button>
             </div>
           </form>
+
+          {/* Action buttons */}
+          <div className="homepage-actions">
+            <button 
+              className="homepage-action-btn"
+              onClick={handleArchiveClick}
+              title="View all meetings"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 3h18v4H3zM3 7h18v14a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+                <path d="M8 11h8M8 15h5"/>
+              </svg>
+              <span>Browse Archive</span>
+            </button>
+          </div>
         </div>
 
         {/* Most Watched Section */}

@@ -6,6 +6,7 @@ export interface AgendaItem {
 export interface SummaryResponse {
   meeting_summary: string
   agenda_summary: AgendaItem[]
+  tags?: string[]
 }
 
 export interface TimestampItem {

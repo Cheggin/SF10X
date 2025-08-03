@@ -24,6 +24,7 @@ function VideoPlayerPage({ video, onBack, startTime }: VideoPlayerPageProps) {
   const [timestampError, setTimestampError] = useState<string | null>(null)
   const [recommendedVideos, setRecommendedVideos] = useState<VideoSegment[]>([])
   const [recommendedLoading, setRecommendedLoading] = useState<boolean>(true)
+  const [tagsExpanded, setTagsExpanded] = useState<boolean>(false)
 
   useEffect(() => {
     const loadData = async () => {
@@ -323,6 +324,37 @@ function VideoPlayerPage({ video, onBack, startTime }: VideoPlayerPageProps) {
                 <h3>Speakers</h3>
                 <p>{video.speakers.join(', ')} + 3 others</p>
               </div>
+
+              {/* Tags Section */}
+              {summaryData?.tags && summaryData.tags.length > 0 && (
+                <div className="tags-section">
+                  <div 
+                    className="tags-header"
+                    onClick={() => setTagsExpanded(!tagsExpanded)}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
+                    <h3>Tags</h3>
+                    {summaryData.tags.length > 3 && (
+                      <ChevronDown 
+                        size={16} 
+                        className={`chevron ${tagsExpanded ? 'expanded' : ''}`}
+                      />
+                    )}
+                  </div>
+                  <div className="video-tags">
+                    {(tagsExpanded ? summaryData.tags : summaryData.tags.slice(0, 3)).map((tag, index) => (
+                      <span key={index} className="video-tag">
+                        {tag}
+                      </span>
+                    ))}
+                    {!tagsExpanded && summaryData.tags.length > 3 && (
+                      <span className="video-tag" style={{ opacity: 0.7, fontStyle: 'italic' }}>
+                        +{summaryData.tags.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
               
               <div className="actions-section">
                 <button className="modern-action-btn primary">
