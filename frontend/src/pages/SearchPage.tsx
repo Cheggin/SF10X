@@ -289,7 +289,7 @@ function SearchPage() {
 
         {/* Most Watched Section */}
         <div className="featured-discussions-section">
-          <h2 className="section-title">Most Watched</h2>
+          <h2 className="section-title">2025's Most Watched Clips</h2>
           <div className="featured-discussions-grid">
             {featuredDiscussions.map((discussion) => (
               <div 
