@@ -10,4 +10,5 @@ export interface VideoSegment {
   videoUrl?: string
   clipId?: string
   viewId?: string
+  views?: string
 }

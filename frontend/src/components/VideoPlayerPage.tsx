@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { VideoSegment } from '../types'
 import VideoPlayer from './VideoPlayer'
-import ChatBot from './ChatBot'
 import { ChevronDown } from 'lucide-react'
 import { fetchSummary, fetchTimestamps, type SummaryResponse, type TimestampItem } from '../services/api'
+import { mockVideoData } from '../data/mockData'
 
 interface VideoPlayerPageProps {
   video: VideoSegment
@@ -11,6 +12,7 @@ interface VideoPlayerPageProps {
 }
 
 function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
+  const navigate = useNavigate()
   const [currentSegment, setCurrentSegment] = useState<number | null>(null)
   const [currentTime, setCurrentTime] = useState<number>(0)
   const [expandedAgendaItems, setExpandedAgendaItems] = useState<Set<number>>(new Set())
@@ -19,6 +21,8 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
   const [summaryLoading, setSummaryLoading] = useState<boolean>(false)
   const [timestampLoading, setTimestampLoading] = useState<boolean>(false)
   const [timestampError, setTimestampError] = useState<string | null>(null)
+  const [recommendedVideos, setRecommendedVideos] = useState<VideoSegment[]>([])
+  const [recommendedLoading, setRecommendedLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const loadData = async () => {
@@ -50,16 +54,57 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
     loadData()
   }, [video.id, video.clipId, video.viewId])
 
+  // Load recommended videos based on current video's tags
+  useEffect(() => {
+    const loadRecommendedVideos = () => {
+      setRecommendedLoading(true)
+      
+      // Filter videos that share tags with current video
+      const related = mockVideoData
+        .filter(v => v.id !== video.id) // Exclude current video
+        .filter(v => 
+          // Find videos that share at least one tag
+          v.tags.some(tag => video.tags.includes(tag))
+        )
+        .slice(0, 3) // Limit to 3 recommendations
+      
+      // If we don't have enough related videos, add others
+      if (related.length < 3) {
+        const remaining = mockVideoData
+          .filter(v => v.id !== video.id)
+          .filter(v => !related.includes(v))
+          .slice(0, 3 - related.length)
+        
+        related.push(...remaining)
+      }
+      
+      setRecommendedVideos(related)
+      setRecommendedLoading(false)
+    }
+
+    loadRecommendedVideos()
+  }, [video.id, video.tags])
+
   // Create agenda items from timestamp data with fallback to hardcoded data
-  const agendaItems = timestampData.length > 0 
-    ? timestampData.map((item, index) => ({
-        id: index + 1,
-        title: item.agenda_name,
-        time: item.time_formatted,
-        startSeconds: item.time_seconds,
-        summary: summaryData?.agenda_summary?.[index]?.agenda_summary || "Summary not available for this agenda item."
-      }))
-    : [
+  const agendaItems = timestampLoading 
+    ? [
+        { 
+          id: 1, 
+          title: "Loading agenda items...", 
+          time: "--:--", 
+          startSeconds: 0,
+          summary: "Loading agenda item details..."
+        }
+      ]
+    : timestampData.length > 0 
+      ? timestampData.map((item, index) => ({
+          id: index + 1,
+          title: item.agenda_name,
+          time: item.time_formatted,
+          startSeconds: item.time_seconds,
+          summary: summaryData?.agenda_summary?.[index]?.agenda_summary || "Loading agenda summary..."
+        }))
+      : [
     { 
       id: 1, 
       title: "Call to Order", 
@@ -142,6 +187,10 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
       newExpanded.add(itemId)
     }
     setExpandedAgendaItems(newExpanded)
+  }
+
+  const handleRecommendedVideoClick = (videoId: string) => {
+    navigate(`/video/${videoId}`)
   }
 
   const videoSegments = [
@@ -309,9 +358,10 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
         </div>
 
         {/* Right Sidebar */}
-        <div className="sidebar-container">
+        <div className="right-sidebar-column">
           {/* Agenda */}
-          <div className="agenda-sidebar-modern">
+          <div className="sidebar-container">
+            <div className="agenda-sidebar-modern">
             <div className="agenda-header-modern">
               <h2>Meeting Agenda</h2>
               <div className="agenda-progress-indicator">
@@ -385,12 +435,84 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
                 )
               })}
             </div>
+            </div>
+          </div>
+
+          {/* Recommended Videos Section */}
+          <div className="recommended-videos-section">
+            <div className="recommended-header">
+              <h3>Recommended Videos</h3>
+              <p>Based on similar topics</p>
+            </div>
+            
+            <div className="recommended-videos-list">
+              {recommendedLoading ? (
+                <div className="recommended-loading">
+                  <div className="recommended-item-skeleton">
+                    <div className="skeleton-thumbnail"></div>
+                    <div className="skeleton-content">
+                      <div className="skeleton-title">Loading recommendations...</div>
+                      <div className="skeleton-meta">Finding related videos...</div>
+                    </div>
+                  </div>
+                  <div className="recommended-item-skeleton">
+                    <div className="skeleton-thumbnail"></div>
+                    <div className="skeleton-content">
+                      <div className="skeleton-title">Loading recommendations...</div>
+                      <div className="skeleton-meta">Finding related videos...</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                recommendedVideos.map((recommendedVideo) => (
+                  <div 
+                    key={recommendedVideo.id}
+                    className="recommended-video-item"
+                    onClick={() => handleRecommendedVideoClick(recommendedVideo.id)}
+                  >
+                    <div className="recommended-thumbnail">
+                      <img 
+                        src={`/thumbnails/${recommendedVideo.id}.jpg`}
+                        alt={`Thumbnail for ${recommendedVideo.title}`}
+                        className="recommended-thumb-image"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const placeholder = target.nextElementSibling;
+                          if (placeholder) placeholder.setAttribute('style', 'display: flex');
+                        }}
+                      />
+                      <div className="recommended-thumb-placeholder" style={{ display: 'none' }}>
+                        <svg className="play-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polygon points="5,3 19,12 5,21" />
+                        </svg>
+                      </div>
+                      <span className="recommended-duration">{recommendedVideo.duration}</span>
+                    </div>
+                    
+                    <div className="recommended-content">
+                      <h4 className="recommended-title">{recommendedVideo.title}</h4>
+                      <div className="recommended-meta">
+                        <span className="recommended-date">{recommendedVideo.date}</span>
+                        <span className="meta-separator">•</span>
+                        <span className="recommended-views">{recommendedVideo.views || '847 views'}</span>
+                      </div>
+                      <div className="recommended-tags">
+                        {recommendedVideo.tags.slice(0, 2).map((tag, index) => (
+                          <span key={index} className="recommended-tag">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
         </div>
       </div>
-      
-      <ChatBot sessionId={video.id} />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { mockVideoData, getPopularVideos } from '../data/mockData'
+import { mockVideoData, getPopularVideos, loadVideoDataWithMetadata } from '../data/mockData'
 import { fetchSummary } from '../services/api'
 import type { VideoSegment } from '../types'
 
@@ -11,6 +11,7 @@ function SearchPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [summariesLoaded, setSummariesLoaded] = useState(false)
+  const [isLoadingData, setIsLoadingData] = useState(true)
   const navigate = useNavigate()
 
   const handleVideoSelect = (videoId: string) => {
@@ -21,14 +22,18 @@ function SearchPage() {
     navigate('/ai')
   }
 
-  // Load real summaries from API
+  // Load real video metadata and summaries from API
   useEffect(() => {
-    const loadSummaries = async () => {
+    const loadVideoDataAndSummaries = async () => {
       if (summariesLoaded) return
       
       try {
+        // First load video data with real metadata
+        const videoDataWithMetadata = await loadVideoDataWithMetadata()
+        
+        // Then load summaries from API
         const updatedVideoData = await Promise.all(
-          mockVideoData.map(async (video) => {
+          videoDataWithMetadata.map(async (video) => {
             try {
               const summaryResponse = await fetchSummary(video.clipId || video.id, video.viewId || '10')
               return {
@@ -46,11 +51,16 @@ function SearchPage() {
         setDisplayedResults(updatedVideoData)
         setSummariesLoaded(true)
       } catch (error) {
-        console.error('Error loading summaries:', error)
+        console.error('Error loading video data and summaries:', error)
+        // Fallback to original mock data
+        setVideoData(mockVideoData)
+        setDisplayedResults(mockVideoData)
+      } finally {
+        setIsLoadingData(false)
       }
     }
 
-    loadSummaries()
+    loadVideoDataAndSummaries()
   }, [])
 
   const handleSearch = () => {
@@ -91,8 +101,8 @@ function SearchPage() {
       duration: video.duration,
       date: video.date,
       tags: video.tags,
-      summary: videoWithRealSummary.summary,
-      views: '1.2k views' // Mock view count
+      summary: isLoadingData ? 'Loading meeting summary...' : videoWithRealSummary.summary,
+      views: videoWithRealSummary.views || '1.2k views'
     }
   })
 
@@ -195,7 +205,7 @@ function SearchPage() {
                         {result.speakers.length > 2 && ` +${result.speakers.length - 2}`}
                       </span>
                       <span className="meta-separator">•</span>
-                      <span className="result-views">847 views</span>
+                      <span className="result-views">{result.views || '847 views'}</span>
                     </div>
                     <p className="result-summary-search">{result.summary}</p>
                     <div className="result-tags-search">
