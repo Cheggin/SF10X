@@ -11,7 +11,7 @@ function PopularClips({ onVideoSelect }: PopularClipsProps) {
   return (
     <section className="popular-clips">
       <div className="popular-clips-container">
-        <h2 className="popular-clips-title">🔥 Popular Clips</h2>
+        <h2 className="popular-clips-title">Featured Content</h2>
         <p className="popular-clips-subtitle">Most watched moments from recent meetings</p>
         
         <div className="popular-clips-grid">
