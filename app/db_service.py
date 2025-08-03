@@ -10,12 +10,13 @@ class DatabaseService:
         load_dotenv(dotenv_path='../.env')
         self.connection_string = os.getenv("SUPABASE_DB_URL")
         if not self.connection_string:
-            raise ValueError("SUPABASE_DB_URL environment variable is required")
+            # For development, don't raise error if DB URL is missing
+            logger.warning("SUPABASE_DB_URL environment variable not set - database features disabled")
         self.pool = None
     
     async def init_pool(self):
         """Initialize connection pool"""
-        if self.pool is None:
+        if self.connection_string and self.pool is None:
             try:
                 self.pool = await asyncpg.create_pool(
                     self.connection_string,

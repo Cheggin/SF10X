@@ -2,11 +2,9 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 
-from constants import ModelName
-from llm_generator import LLMGenerator
 from loguru import logger
 
-from schemas.schema import NewsRagRequest, SummaryRequest, SummaryResponse, AgendaSummary
+from schemas.schema import SummaryRequest, SummaryResponse, AgendaSummary
 from summary_service import SummaryService
 from db_service import db_service
 
@@ -70,7 +68,8 @@ async def get_summary(
     """
     Get meeting summary and agenda summary for a given clip_id and view_id
     """
-    request = SummaryRequest(clip_id=clip_id, view_id=view_id)
+    # Create request object (currently not used but available for future use)
+    _request = SummaryRequest(clip_id=clip_id, view_id=view_id)
     return SummaryResponse(
         meeting_summary="Dummy Summary",
         agenda_summary=[

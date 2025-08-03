@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { VideoSegment } from '../types'
 import VideoPlayer from './VideoPlayer'
 import { ChevronDown } from 'lucide-react'
+import { fetchSummary, fetchTimestamps, type SummaryResponse, type TimestampItem } from '../services/api'
 
 interface VideoPlayerPageProps {
   video: VideoSegment
@@ -12,8 +13,56 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
   const [currentSegment, setCurrentSegment] = useState<number | null>(null)
   const [currentTime, setCurrentTime] = useState<number>(0)
   const [expandedAgendaItems, setExpandedAgendaItems] = useState<Set<number>>(new Set())
+  const [summaryData, setSummaryData] = useState<SummaryResponse | null>(null)
+  const [timestampData, setTimestampData] = useState<TimestampItem[]>([])
+  const [summaryLoading, setSummaryLoading] = useState<boolean>(false)
+  const [timestampLoading, setTimestampLoading] = useState<boolean>(false)
+  const [summaryError, setSummaryError] = useState<string | null>(null)
+  const [timestampError, setTimestampError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'agenda' | 'summary'>('agenda')
 
-  const agendaItems = [
+  useEffect(() => {
+    const loadData = async () => {
+      // Load summary data
+      setSummaryLoading(true)
+      setSummaryError(null)
+      try {
+        const summaryResponse = await fetchSummary(video.id, video.id)
+        setSummaryData(summaryResponse)
+      } catch (error) {
+        setSummaryError('Failed to load summary data')
+        console.error('Error loading summary:', error)
+      } finally {
+        setSummaryLoading(false)
+      }
+
+      // Load timestamp data
+      setTimestampLoading(true)
+      setTimestampError(null)
+      try {
+        const timestampResponse = await fetchTimestamps('50523', '10') // Using your test IDs for now
+        setTimestampData(timestampResponse)
+      } catch (error) {
+        setTimestampError('Failed to load timestamp data')
+        console.error('Error loading timestamps:', error)
+      } finally {
+        setTimestampLoading(false)
+      }
+    }
+
+    loadData()
+  }, [video.id])
+
+  // Create agenda items from timestamp data with fallback to hardcoded data
+  const agendaItems = timestampData.length > 0 
+    ? timestampData.map((item, index) => ({
+        id: index + 1,
+        title: item.agenda_name,
+        time: item.time_formatted,
+        startSeconds: item.time_seconds,
+        summary: summaryData?.agenda_summary?.[index]?.agenda_summary || "Summary not available for this agenda item."
+      }))
+    : [
     { 
       id: 1, 
       title: "Call to Order", 
@@ -158,7 +207,6 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
           <div className="header-details">
             <h1 className="modern-title">{video.title}</h1>
             <div className="meeting-badge">
-              <span className="date-badge">{video.date}, 2024</span>
               <span className="type-badge">Board Meeting</span>
             </div>
           </div>
@@ -195,8 +243,30 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
             />
           </div>
 
+          {/* Video Stats */}
+          <div className="video-stats">
+            <div className="view-count">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span className="view-count-text">1,247 views</span>
+              <span className="stats-separator">•</span>
+              <span className="video-date">{video.date}, 2024</span>
+            </div>
+          </div>
+
           {/* Video Info Card */}
           <div className="video-info-card">
+            {/* Meeting Summary Section */}
+            {summaryData?.meeting_summary && (
+              <div className="meeting-summary-section-inline">
+                <h3>Meeting Summary</h3>
+                {summaryLoading && <span className="summary-loading-text">Loading...</span>}
+                <p>{summaryData.meeting_summary}</p>
+              </div>
+            )}
+            
             <div className="speakers-section">
               <h3>Speakers</h3>
               <p>{video.speakers.join(', ')} + 3 others</p>
@@ -238,78 +308,135 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
           </div>
         </div>
 
-        {/* Agenda Sidebar */}
-        <div className="agenda-sidebar-modern">
-          <div className="agenda-header-modern">
-            <h2>Meeting Agenda</h2>
-            <div className="agenda-progress-indicator">
-              <span>{agendaItems.filter((_, i) => getCurrentAgendaStatus(i) === 'completed').length} / {agendaItems.length} completed</span>
-            </div>
+        {/* Right Sidebar with Tabs */}
+        <div className="sidebar-container">
+          {/* Tab Navigation */}
+          <div className="tab-navigation">
+            <button 
+              className={`tab-btn ${activeTab === 'agenda' ? 'active' : ''}`}
+              onClick={() => setActiveTab('agenda')}
+            >
+              Agenda
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'summary' ? 'active' : ''}`}
+              onClick={() => setActiveTab('summary')}
+            >
+              Summary
+            </button>
           </div>
-          
-          <div className="agenda-timeline">
-            {agendaItems.map((item, index) => {
-              const status = getCurrentAgendaStatus(index)
-              const progress = getAgendaProgress(index)
-              const isExpanded = expandedAgendaItems.has(item.id)
-              return (
-                <div 
-                  key={item.id} 
-                  className={`timeline-item ${status}`}
-                >
-                  <div className="timeline-marker">
-                    <div className={`marker-dot ${status}`}>
-                      {status === 'completed' && <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>}
-                      {status === 'current' && <div className="pulse-dot"></div>}
+
+          {/* Agenda Tab */}
+          <div className="agenda-sidebar-modern" style={{ display: activeTab === 'agenda' ? 'block' : 'none' }}>
+            <div className="agenda-header-modern">
+              <h2>Meeting Agenda</h2>
+              <div className="agenda-progress-indicator">
+                <span>{agendaItems.filter((_, i) => getCurrentAgendaStatus(i) === 'completed').length} / {agendaItems.length} completed</span>
+              </div>
+              {timestampLoading && <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Loading timestamps...</div>}
+              {timestampError && <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px' }}>{timestampError}</div>}
+            </div>
+            
+            <div className="agenda-timeline">
+              {agendaItems.map((item, index) => {
+                const status = getCurrentAgendaStatus(index)
+                const progress = getAgendaProgress(index)
+                const isExpanded = expandedAgendaItems.has(item.id)
+                return (
+                  <div 
+                    key={item.id} 
+                    className={`timeline-item ${status}`}
+                  >
+                    <div className="timeline-marker">
+                      <div className={`marker-dot ${status}`}>
+                        {status === 'completed' && <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>}
+                        {status === 'current' && <div className="pulse-dot"></div>}
+                      </div>
+                      {index < agendaItems.length - 1 && <div className="timeline-line"></div>}
                     </div>
-                    {index < agendaItems.length - 1 && <div className="timeline-line"></div>}
-                  </div>
-                  
-                  <div className="timeline-content">
-                    <div 
-                      className="timeline-header"
-                      onClick={() => {
-                        const seconds = handleAgendaClick(item.time)
-                        const videoElement = document.querySelector('video') as HTMLVideoElement
-                        if (videoElement) {
-                          videoElement.currentTime = seconds
-                        }
-                      }}
-                    >
-                      <div className="timeline-time">{item.time}</div>
-                      <h4 className="timeline-title">{item.title}</h4>
-                      <button 
-                        className="expand-btn"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleAgendaItem(item.id)
+                    
+                    <div className="timeline-content">
+                      <div 
+                        className="timeline-header"
+                        onClick={() => {
+                          const seconds = handleAgendaClick(item.time)
+                          const videoElement = document.querySelector('video') as HTMLVideoElement
+                          if (videoElement) {
+                            videoElement.currentTime = seconds
+                          }
                         }}
                       >
-                        <ChevronDown 
-                          size={16} 
-                          className={`chevron ${isExpanded ? 'expanded' : ''}`}
-                        />
-                      </button>
+                        <div className="timeline-time">{item.time}</div>
+                        <h4 className="timeline-title">{item.title}</h4>
+                        <button 
+                          className="expand-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleAgendaItem(item.id)
+                          }}
+                        >
+                          <ChevronDown 
+                            size={16} 
+                            className={`chevron ${isExpanded ? 'expanded' : ''}`}
+                          />
+                        </button>
+                      </div>
+                      
+                      {status === 'current' && progress > 0 && (
+                        <div className="progress-bar-modern">
+                          <div 
+                            className="progress-fill-modern"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      )}
+                      
+                      {isExpanded && (
+                        <div className="timeline-summary">
+                          <p>{item.summary}</p>
+                        </div>
+                      )}
                     </div>
-                    
-                    {status === 'current' && progress > 0 && (
-                      <div className="progress-bar-modern">
-                        <div 
-                          className="progress-fill-modern"
-                          style={{ width: `${progress}%` }}
-                        />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Summary Tab */}
+          <div className="summary-sidebar-modern" style={{ display: activeTab === 'summary' ? 'block' : 'none' }}>
+            <div className="summary-header-modern">
+              <h2>Meeting Summary</h2>
+            </div>
+            
+            <div className="summary-content">
+              {summaryLoading && (
+                <div className="summary-loading">
+                  <div className="loading-spinner"></div>
+                  <p>Loading summary...</p>
+                </div>
+              )}
+              
+              {summaryError && (
+                <div className="summary-error">
+                  <p>{summaryError}</p>
+                </div>
+              )}
+              
+              {summaryData && (
+                <div className="agenda-summaries-section">
+                  <h3>Agenda Item Summaries</h3>
+                  <div className="agenda-summaries-list">
+                    {summaryData.agenda_summary.map((item, index) => (
+                      <div key={index} className="agenda-summary-item">
+                        <h4>{item.agenda_name}</h4>
+                        <p>{item.agenda_summary}</p>
                       </div>
-                    )}
-                    
-                    {isExpanded && (
-                      <div className="timeline-summary">
-                        <p>{item.summary}</p>
-                      </div>
-                    )}
+                    ))}
                   </div>
                 </div>
-              )
-            })}
+              )}
+            </div>
           </div>
         </div>
       </div>

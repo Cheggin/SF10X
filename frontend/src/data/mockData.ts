@@ -3,7 +3,7 @@ import type { VideoSegment } from '../types'
 export const mockVideoData: VideoSegment[] = [
   {
     id: 'housing-discussion',
-    title: 'Housing Discussion',
+    title: 'Board of Supervisors Meeting',
     date: 'Jan 15',
     duration: '23 min',
     speakers: ['Supervisor Johnson'],
