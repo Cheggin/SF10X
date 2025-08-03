@@ -174,7 +174,7 @@ def main():
         
         # Fetch timestamps for each meeting (optionally limit this for testing)
         logger.info("Fetching timestamps for meetings...")
-        for i, meeting in enumerate(meetings[:5]):  # Fetch timestamps for first 5 meetings
+        for i, meeting in enumerate(meetings):
             meeting.timestamps = get_timestamps_for_meeting(meeting)
             if meeting.timestamps:
                 logger.info(f"Meeting {meeting.clip_id} has {len(meeting.timestamps)} agenda items")

@@ -1,7 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
 from typing import List, Dict
-import json
-from pathlib import Path
 
 from constants import ModelName
 from llm_generator import LLMGenerator
@@ -9,6 +7,7 @@ from loguru import logger
 
 from schemas.schema import NewsRagRequest, SummaryRequest, SummaryResponse, AgendaSummary
 from summary_service import SummaryService
+from db_service import db_service
 
 app = FastAPI()
 
@@ -83,39 +82,28 @@ async def get_timestamps(clip_id: str, view_id: str) -> List[Dict]:
         view_id: The view identifier (e.g., "10")
     
     Returns:
-        Dict containing timestamps array with agenda items
+        List containing timestamps with agenda items
     """
     
-    # Load parsed meetings data
-    parsed_meetings_path = Path(__file__).parent.parent / "scripts" / "parsed_meetings.json"
-    
-    if not parsed_meetings_path.exists():
-        raise HTTPException(
-            status_code=500,
-            detail="Parsed meetings data not found"
-        )
-    
     try:
-        with open(parsed_meetings_path, 'r') as f:
-            meetings = json.load(f)
+        timestamps = await db_service.get_timestamps(clip_id, view_id)
+        
+        if timestamps is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Meeting with clip_id='{clip_id}' and view_id='{view_id}' not found"
+            )
+        
+        return timestamps
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error loading parsed meetings: {e}")
+        logger.error(f"Error retrieving timestamps for clip_id={clip_id}, view_id={view_id}: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Error loading meeting data"
+            detail="Error retrieving timestamps from database"
         )
-    
-    # Find the meeting with matching clip_id and view_id
-    for meeting in meetings:
-        if meeting.get('clip_id') == clip_id and meeting.get('view_id') == view_id:
-            # Return just the timestamps array
-            return meeting.get('timestamps', [])
-    
-    # Meeting not found
-    raise HTTPException(
-        status_code=404,
-        detail=f"Meeting with clip_id='{clip_id}' and view_id='{view_id}' not found"
-    )
 
 
 if __name__ == "__main__":
