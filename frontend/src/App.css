@@ -3099,7 +3099,7 @@ body {
 .centered-header {
   text-align: center;
   padding: 60px 0 80px 0;
-  max-width: 600px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -3123,7 +3123,7 @@ body {
 /* Centered Search Form */
 .search-form-centered {
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
