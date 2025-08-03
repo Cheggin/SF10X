@@ -131,13 +131,13 @@ function VideoPlayerPage({ video, onBack }: VideoPlayerPageProps) {
     return 0
   }
 
-  const handleSegmentClick = (timeRange: string, index: number) => {
-    const startTime = timeRange.split('-')[0]
-    const seconds = parseTimeToSeconds(startTime)
-    setCurrentSegment(index)
-    // The VideoPlayer component will handle the actual seeking via onSeek callback
-    return seconds
-  }
+  // const handleSegmentClick = (timeRange: string, index: number) => {
+  //   const startTime = timeRange.split('-')[0]
+  //   const seconds = parseTimeToSeconds(startTime)
+  //   setCurrentSegment(index)
+  //   // The VideoPlayer component will handle the actual seeking via onSeek callback
+  //   return seconds
+  // }
 
   const handleAgendaClick = (timeStr: string) => {
     const seconds = parseTimeToSeconds(timeStr)

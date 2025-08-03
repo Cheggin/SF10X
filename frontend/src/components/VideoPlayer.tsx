@@ -29,7 +29,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, onSeek }) 
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showControls, setShowControls] = useState(true)
 
-  const playbackSpeeds = [0.5, 1, 1.25, 1.5, 2]
+  // const playbackSpeeds = [0.5, 1, 1.25, 1.5, 2]
 
   useEffect(() => {
     const video = videoRef.current
