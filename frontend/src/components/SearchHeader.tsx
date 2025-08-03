@@ -24,9 +24,9 @@ function SearchHeader({
     <header className="search-header">
       <div className="header-hero">
         <div className="hero-content">
-          <h1>San Francisco Council Search</h1>
+          <h1>San Francisco Board of Supervisors Search</h1>
           <p className="hero-subtitle">
-            Access official city council meeting archives, transcripts, and key discussions
+            Access official Board of Supervisors meeting archives, transcripts, and key discussions
           </p>
         </div>
       </div>

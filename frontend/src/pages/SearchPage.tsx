@@ -230,7 +230,7 @@ function SearchPage() {
         {/* Google-style centered header section */}
         <div className="centered-header">
           <h1 className="main-title">SFGovTV++</h1>
-          <p className="main-subtitle">Search San Francisco city council meeting archives</p>
+          <p className="main-subtitle">Search San Francisco Board of Supervisors meeting archives</p>
           
           {/* Search bar */}
           <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="search-form-centered">

@@ -241,7 +241,7 @@ const AIChatPage: React.FC = () => {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about city council meetings..."
+                placeholder="Ask about Board of Supervisors meetings..."
                 className="ai-input"
                 disabled={isLoading}
               />

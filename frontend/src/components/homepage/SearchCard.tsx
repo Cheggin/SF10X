@@ -18,7 +18,7 @@ const SearchCard = memo(({ title, searchQuery, onSearchChange, onSearch }: Searc
       <div className="search-card-content">
         <h1 className="search-card-title">{title}</h1>
         <p className="search-card-subtitle">
-          Access official city council meeting archives, transcripts, and key discussions
+          Access official Board of Supervisors meeting archives, transcripts, and key discussions
         </p>
         <form onSubmit={handleSubmit} className="search-form">
           <div className="search-input-container">

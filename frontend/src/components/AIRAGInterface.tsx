@@ -25,7 +25,7 @@ const AIRAGInterface: React.FC<AIRAGInterfaceProps> = ({ onClose }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hello! I\'m your AI assistant for San Francisco city council meetings. Ask me anything about past meetings, decisions, or discussions.',
+      text: 'Hello! I\'m your AI assistant for San Francisco Board of Supervisors meetings. Ask me anything about past meetings, decisions, or discussions.',
       sender: 'ai',
       timestamp: new Date()
     }
@@ -101,7 +101,7 @@ const AIRAGInterface: React.FC<AIRAGInterfaceProps> = ({ onClose }) => {
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'Based on the city council meeting records, here\'s what I found...',
+        text: data.response || 'Based on the Board of Supervisors meeting records, here\'s what I found...',
         sender: 'ai',
         timestamp: new Date(),
         sources: mockSources
@@ -206,7 +206,7 @@ const AIRAGInterface: React.FC<AIRAGInterfaceProps> = ({ onClose }) => {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about city council meetings..."
+              placeholder="Ask about Board of Supervisors meetings..."
               className="ai-input"
               disabled={isLoading}
             />
