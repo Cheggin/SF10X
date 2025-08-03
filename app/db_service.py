@@ -54,7 +54,7 @@ class DatabaseService:
         Get meeting summary and agenda summary by meeting_id
         
         Args:
-            meeting_id: The meeting ID (clip_id + "_" + view_id)
+            meeting_id: The meeting ID (view_id + "_" + clip_id)
             
         Returns:
             Tuple of (meeting_summary, agenda_summary_list) or None if not found
@@ -64,22 +64,27 @@ class DatabaseService:
             connection = await self.get_connection()
             
             query = """
-                SELECT meeting_summary, agenda_summary 
-                FROM meetings
+                SELECT main_summary, agenda_summary 
+                FROM meeting_summary
                 WHERE meeting_id = $1
             """
             
             result = await connection.fetchrow(query, meeting_id)
             
             if result:
-                meeting_summary = result['meeting_summary']
-                agenda_summary_json = result['agenda_summary']
+                meeting_summary = result['main_summary']
+                agenda_summary_raw = result['agenda_summary']
                 
-                # Parse JSON if it's a string
-                if isinstance(agenda_summary_json, str):
-                    agenda_summary = json.loads(agenda_summary_json)
-                else:
-                    agenda_summary = agenda_summary_json
+                # Process agenda_summary array - handle both dict and string items
+                agenda_summary = []
+                if agenda_summary_raw:
+                    for item in agenda_summary_raw:
+                        if isinstance(item, str):
+                            # If item is a JSON string, parse it
+                            agenda_summary.append(json.loads(item))
+                        elif isinstance(item, dict):
+                            # If item is already a dict, use it directly
+                            agenda_summary.append(item)
                 
                 return meeting_summary, agenda_summary
             
@@ -91,7 +96,7 @@ class DatabaseService:
         finally:
             if connection:
                 await self.release_connection(connection)
-    
+
     async def get_timestamps(self, clip_id: str, view_id: str) -> Optional[List[dict]]:
         """
         Get timestamps/agenda items for a given clip_id and view_id

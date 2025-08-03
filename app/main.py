@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 
 from loguru import logger
 
-from schemas.schema import SummaryRequest, SummaryResponse, AgendaSummary
-from summary_service import SummaryService
+from schemas.schema import SummaryResponse, AgendaSummary
 from db_service import db_service
 
 app = FastAPI()
@@ -62,23 +61,48 @@ def get_summary_service():
 @app.get("/summary", response_model=SummaryResponse)
 async def get_summary(
         clip_id: str,
-        view_id: str,
-        summary_service: SummaryService = Depends(get_summary_service)
+        view_id: str
 ):
     """
     Get meeting summary and agenda summary for a given clip_id and view_id
     """
-    # Create request object (currently not used but available for future use)
-    _request = SummaryRequest(clip_id=clip_id, view_id=view_id)
-    return SummaryResponse(
-        meeting_summary="Dummy Summary",
-        agenda_summary=[
-            AgendaSummary(agenda_name="Dummy Agenda 1", agenda_summary="Dummy agenda Summary 1"),
-            AgendaSummary(agenda_name="Dummy Agenda 2", agenda_summary="Dummy agenda Summary 2"),
-            AgendaSummary(agenda_name="Dummy Agenda 3", agenda_summary="Dummy agenda Summary 3"),
-        ],
-    )
-    # return await summary_service.get_summary(request)
+    try:
+        # Construct meeting_id in the format expected by the database
+        meeting_id = f"{view_id}_{clip_id}"
+        
+        # Get meeting summary from database
+        result = await db_service.get_meeting_summary(meeting_id)
+        
+        if result is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Meeting summary with clip_id='{clip_id}' and view_id='{view_id}' not found"
+            )
+        
+        meeting_summary, agenda_summaries = result
+        
+        # Convert agenda summaries to the expected format
+        agenda_summary_list = [
+            AgendaSummary(
+                agenda_name=item['agenda_name'],
+                agenda_summary=item['agenda_summary']
+            )
+            for item in agenda_summaries
+        ]
+        
+        return SummaryResponse(
+            meeting_summary=meeting_summary,
+            agenda_summary=agenda_summary_list
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving meeting summary for clip_id={clip_id}, view_id={view_id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Error retrieving meeting summary from database"
+        )
 
 
 @app.get("/timestamps")
