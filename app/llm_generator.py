@@ -9,8 +9,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from pydantic import BaseModel
 
-from app.constants import ModelName
-from app.select_model import select_model
+from constants import ModelName
+from select_model import select_model
 from file_utils import read_txt_file
 from llm_response_formatter import clean_raw_llm_response
 

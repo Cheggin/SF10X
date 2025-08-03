@@ -1,4 +1,7 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
+from typing import List, Dict
+import json
+from pathlib import Path
 
 from constants import ModelName
 from llm_generator import LLMGenerator
@@ -68,6 +71,51 @@ async def get_summary(
         ],
     )
     # return await summary_service.get_summary(request)
+
+
+@app.get("/timestamps")
+async def get_timestamps(clip_id: str, view_id: str) -> List[Dict]:
+    """
+    Get timestamps/agenda items for a given clip_id and view_id.
+    
+    Args:
+        clip_id: The clip identifier (e.g., "50523")
+        view_id: The view identifier (e.g., "10")
+    
+    Returns:
+        Dict containing timestamps array with agenda items
+    """
+    
+    # Load parsed meetings data
+    parsed_meetings_path = Path(__file__).parent.parent / "scripts" / "parsed_meetings.json"
+    
+    if not parsed_meetings_path.exists():
+        raise HTTPException(
+            status_code=500,
+            detail="Parsed meetings data not found"
+        )
+    
+    try:
+        with open(parsed_meetings_path, 'r') as f:
+            meetings = json.load(f)
+    except Exception as e:
+        logger.error(f"Error loading parsed meetings: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Error loading meeting data"
+        )
+    
+    # Find the meeting with matching clip_id and view_id
+    for meeting in meetings:
+        if meeting.get('clip_id') == clip_id and meeting.get('view_id') == view_id:
+            # Return just the timestamps array
+            return meeting.get('timestamps', [])
+    
+    # Meeting not found
+    raise HTTPException(
+        status_code=404,
+        detail=f"Meeting with clip_id='{clip_id}' and view_id='{view_id}' not found"
+    )
 
 
 if __name__ == "__main__":
