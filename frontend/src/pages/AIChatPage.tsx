@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Send, ArrowLeft, Sparkles, FileText, Clock } from 'lucide-react'
+import { Send, FileText, Clock } from 'lucide-react'
 
 interface Message {
   id: string

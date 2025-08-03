@@ -4572,7 +4572,8 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #ffffff;
+  background: #f8fafc;
+  padding: 0 20px;
 }
 
 .ai-chat-header {
@@ -4638,6 +4639,10 @@ body {
   margin: 0 auto;
   width: 100%;
   overflow: hidden;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
 }
 
 .ai-messages-wrapper {
