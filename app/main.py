@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 
 from constants import ModelName
@@ -10,6 +11,15 @@ from summary_service import SummaryService
 from db_service import db_service
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Global variable to store the LLMGenerator instance
 llm_generator = None
