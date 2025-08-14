@@ -1,3 +1,8 @@
-# SF10X
+# SFGovTV++ : SF10X Hackathon
 
-[Raw Transcripts](https://sanfrancisco.granicus.com/ViewPublisher.php?view_id=10)
+
+Running frontend locally: 
+- cd into ~/SF10X/frontend
+- run 'npm run dev' in the terminal
+- vite automatically hosts the site on localhost:5173. Pushing changes to main will update the Vercel website.
+  
